@@ -21,6 +21,7 @@ from .magpie import Controls, Magpie
 from .mate import Mate
 from .spawner import Spawner
 from .threats import Poop, progress_bar
+from .touch import TouchPad, draw_rotate_hint, portrait
 
 W, H = T.SCREEN_W, T.SCREEN_H
 WEB = sys.platform == "emscripten"  # running in a browser via pygbag
@@ -71,6 +72,7 @@ class Game:
         self.scene = "title"
         self.paused = False
         self.debug = False
+        self.touch = TouchPad()
         self.fps = 60.0
         self.high = load_high()
         self.title_t = 0.0
@@ -403,9 +405,11 @@ class Game:
         if self.debug:
             self.hud.draw_debug(dst, self)
         if self.paused:
-            self.overlay(dst, "PAUSED", ["P / ESC  resume", "Q  quit to title"])
+            lines = ["TAP TO RESUME"] if self.touch.active else ["P / ESC  resume", "Q  quit to title"]
+            self.overlay(dst, "PAUSED", lines)
         elif self.scene in ("over", "victory"):
             stats.draw(dst, self, self.end_screen_t)
+        self.touch.draw(dst, self, self.hud.tc, pygame.time.get_ticks() / 1000)
 
     def overlay(self, dst, title, lines):
         shade = pygame.Surface((W, H), pygame.SRCALPHA)
@@ -438,7 +442,7 @@ class Game:
         dst.blit(logo, (W / 2 - logo.get_width() / 2, 20))
         sub = tc.get("Defend the nest. Swoop the lot of 'em.", 22, P.BONE, P.CHARCOAL, 2)
         dst.blit(sub, (W / 2 - sub.get_width() / 2, 150))
-        controls = ["SPACE / W / UP / CLICK   flap", "S / DOWN   swoop dive", "SHIFT / X   claw / peck",
+        controls = TOUCH_HELP if self.touch.active else ["SPACE / W / UP / CLICK   flap", "S / DOWN   swoop dive", "SHIFT / X   claw / peck",
                     "A D / LEFT RIGHT   steer  (or walk, when landed)", "CTRL / E   poop  (while flying)      Q   call your mate (3 a season)",
                     "P / ESC   pause      F11   fullscreen"]
         y = 284
@@ -450,7 +454,7 @@ class Game:
             dst.blit(img, (W / 2 - img.get_width() / 2, y))
             y += 25
         if int(t * 2) % 2 == 0:
-            ps = tc.get("PRESS SPACE", 32, P.WATTLE, P.CHARCOAL, 3)
+            ps = tc.get("TAP TO START" if self.touch.active else "PRESS SPACE", 32, P.WATTLE, P.CHARCOAL, 3)
             dst.blit(ps, (W / 2 - ps.get_width() / 2, 460))
         best = self.high.get("score", 0)
         if best:
@@ -486,6 +490,10 @@ class Game:
                 self.call_mate()
         return True
 
+
+TOUCH_HELP = ["FLAP button, or tap anywhere on the right", "SWOOP   dive        CLAW   slash / peck",
+              "<  >   steer  (or walk, when landed)", "POOP   while flying        MATE   call your mate (3 a season)",
+              "II   pause", "Turn your phone sideways to play"]
 
 FLAP_KEYS = (pygame.K_SPACE, pygame.K_UP, pygame.K_w)
 SWOOP_KEYS = (pygame.K_DOWN, pygame.K_s)
@@ -576,6 +584,10 @@ async def run():
                     ctl.poop = True
                 else:
                     running = game.handle_key(ev.key) and running
+            elif ev.type in (pygame.FINGERDOWN, pygame.FINGERUP, pygame.FINGERMOTION):
+                running = game.touch.handle(ev, game, ctl, pygame.time.get_ticks() / 1000) and running
+            elif ev.type == pygame.MOUSEBUTTONDOWN and game.touch.from_mouse(ev, pygame.time.get_ticks() / 1000):
+                pass
             elif ev.type == pygame.MOUSEBUTTONDOWN and game.scene == "play" and not game.paused:
                 if ev.button == 1:
                     ctl.flap = True
@@ -584,8 +596,11 @@ async def run():
         keys = pygame.key.get_pressed()
         ctl.left = keys[pygame.K_LEFT] or keys[pygame.K_a]
         ctl.right = keys[pygame.K_RIGHT] or keys[pygame.K_d]
+        game.touch.steer(ctl)
         game.update(dt, ctl)
         game.draw(screen)
+        if WEB and game.touch.active and portrait():
+            draw_rotate_hint(screen, game.hud.tc)
         pygame.display.flip()
         await asyncio.sleep(0)
     pygame.quit()

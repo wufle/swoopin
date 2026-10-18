@@ -16,8 +16,9 @@ you a cheeky bonus and sends them screaming for mum. Hit too many and an
 Survive the full 10-minute swooping season (Aug → Nov) and the chicks fledge.
 Lose every egg and the nest is raided.
 
-**[▶ Play it in your browser](https://wufle.github.io/swoopin/)** (keyboard needed;
-click the page once to start, which lets the browser play sound), or
+**[▶ Play it in your browser](https://wufle.github.io/swoopin/)**, on a computer or
+a phone held sideways (click or tap the page once to start, which lets the
+browser play sound), or
 [download it](#download) for Windows, macOS or Linux. The download plays a
 little better: it starts instantly, runs more smoothly, handles sound more
 reliably, and lets you use Ctrl to poop and switch fullscreen in game.
@@ -79,6 +80,12 @@ aspect ratios.
 | P / Esc | Pause (Q while paused quits to the title screen instead) |
 | F1 | Debug overlay (difficulty, spawn stats) |
 | F11 / Alt+Enter | Toggle fullscreen |
+
+**On a phone or tablet,** on-screen buttons appear as soon as you touch the
+screen. Use ◀ ▶ (left thumb) to steer or walk, and FLAP, SWOOP, CLAW and POOP
+(right thumb). Tapping any empty spot on the right half also flaps. MATE calls
+your partner and II pauses. Multi-touch works, so you can hold a steer button
+while you flap.
 
 ## Scoring
 

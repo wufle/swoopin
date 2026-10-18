@@ -199,7 +199,8 @@ def draw(dst, g, t):
         dst.blit(tc.get(f"{n}", 20, P.WATTLE if n else P.GREY, P.CHARCOAL, 2), (x + 46, y + 16))
 
     if t > 1.5:
-        img = tc.get("SPACE  play again        ESC  title", 18, P.BONE, P.CHARCOAL, 2)
+        msg = "TAP to play again" if g.touch.active else "SPACE  play again        ESC  title"
+        img = tc.get(msg, 18, P.BONE, P.CHARCOAL, 2)
         dst.blit(img, (W / 2 - img.get_width() / 2, H - 38))
 
 

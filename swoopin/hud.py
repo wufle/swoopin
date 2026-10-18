@@ -82,7 +82,7 @@ class HUD:
             else:
                 pygame.draw.ellipse(dst, P.CHARCOAL, rect, 2)
         # partner magpie: calls left, and how long she'll stay
-        lab = tc.get("Q  MATE", 12, P.BONE, P.CHARCOAL, 2, False)
+        lab = tc.get("MATE" if g.touch.active else "Q  MATE", 12, P.BONE, P.CHARCOAL, 2, False)
         lx = cx - (lab.get_width() + 6 + T.MATE_CALLS * 14) / 2
         dst.blit(lab, (lx, 38))
         for i in range(T.MATE_CALLS):

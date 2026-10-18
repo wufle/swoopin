@@ -302,3 +302,8 @@ swoopin/
   (WebAssembly), hosted on GitHub Pages. The game loop is async so it can
   yield to the page each frame. In the browser, E also poops (Ctrl+W would
   close the tab), and F11 / Esc are left to the browser.
+- **Touch controls.** On phones and tablets, semi-transparent buttons appear
+  after the first touch: steer left/right on the left thumb, and flap, swoop,
+  claw and poop on the right, plus mate and pause. Any tap on the empty right
+  half flaps. On-screen prompts switch to "TAP", and a portrait phone gets a
+  "turn your phone sideways" message.

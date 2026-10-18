@@ -233,3 +233,30 @@ swoopin/
 - Comic text shows up on every hit, and the word fits the kind of hit.
 - All colours come from `palette.py`.
 - No external image files are needed.
+
+## Revisions after the first playtest
+
+- **Sound:** a formant voice synthesiser for kids yelling "MUUUUM!", wailing
+  and screaming, Australian ravens' drawn-out "aaah-aaah-aaaaah", and dads'
+  "OI!". The magpie carol is now two birds trading fluting, gliding phrases,
+  with a beak clack on the swoop and a chortle on combos.
+- **Innocent kids:** most kids are passers-by who never touch the nest and
+  panic when the magpie comes near. Hitting one earns a **CHEEKY!** bonus and
+  a scream for mum. Nest-raiding brats (scowling, throwing sticks) are the
+  minority.
+- **One hit:** kids, bike kids, crows, butcherbirds, Djiti Djiti and cats go
+  down in one hit. Posties (2), goannas (3) and dads (3) take more, and only
+  these multi-hit types get extra health later in the season. Ice-cream and
+  cable-tie helmets still halve head damage.
+- **Walking:** a gentle landing puts the magpie on its feet to walk on two
+  legs. Only diving into the ground or dropping from a great height is a
+  stumble.
+- **Angry dads:** knocking out kids fills a DAD-O-METER (innocents count 1,
+  brats 0.3, and it drains slowly). When it's full, a dad in a singlet and
+  akubra walks in with a shotgun, takes slow, telegraphed aim, fires a spread
+  of pellets 3 times, then storms off. A hit while he's aiming spoils the shot.
+- **Comic text:** one burst per hit, placed on the victim and never inside a
+  125 px bubble around the magpie. Recent texts stack upwards rather than
+  overlapping, and combo shouts sit by the combo counter.
+- **Full screen:** F11 / Alt+Enter, `--fullscreen` / `--windowed`, remembered
+  in `~/.local/share/swoopin/settings.json`.

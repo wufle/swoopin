@@ -53,13 +53,14 @@ def resolve(game):
             if zone:
                 m.claw_hits.add(id(th))
                 apply_hit(game, th, "claw", zone, c)
-    if m.state == "fly" and m.peck_cd <= 0 and not m.grounded:
+    if m.state == "fly" and m.peck_cd <= 0:
         tip = m.tip()
         for th in targets:
             zone = classify(th.zones(), tip, 4)
             if zone:
                 m.peck_cd = T.PECK_COOLDOWN
-                m.vel[0] = -m.facing * 140
+                if not m.grounded:
+                    m.vel[0] = -m.facing * 140
                 apply_hit(game, th, "peck", zone, tip)
                 break
 
@@ -86,29 +87,38 @@ def apply_hit(game, th, kind, zone, point):
     pts = th.score * T.ZONE_SCORE[zone] * mult
     was_fleeing = th.state in ("flee", "flee_win")
     ko = th.take_damage(dmg, game.magpie.pos)
-    game.add_score(pts, point)
     game.wave_hits += 1
 
-    # comic word
+    # One burst per hit, placed on the victim (fx keeps it off the magpie).
+    hx, hy = th.head_pos()
+    mx = game.magpie.pos[0]
+    spot = (hx + (40 if hx >= mx else -40), hy - 26)
     if zone == "eye":
-        fx.text(random.choice(WORDS["eye"]), point, "big", 34)
+        fx.text(random.choice(WORDS["eye"]), spot, "big", 30)
         fx.big_hit()
         audio.play("eye")
     else:
-        key = zone if zone in ("helmet", "backhead") else kind
-        size = 22 if kind == "peck" else 30
-        fx.text(random.choice(WORDS[key]), point, "hit", size)
+        if ko and T.THREATS[th.kind]["hp"] > 1:
+            word, style = random.choice(WORDS["ko"]), "ko"  # finally dropped a tough one
+        else:
+            word, style = random.choice(WORDS[zone if zone in ("helmet", "backhead") else kind]), "hit"
+        fx.text(word, spot, style, 22 if kind == "peck" else 27)
         fx.shake.add(T.SHAKE_SMALL if kind != "peck" else 1.5)
         audio.play({"swoop": "bang", "claw": "claw", "peck": "peck"}[kind])
 
     part = PARTICLES.get(th.kind)
     if part:
         fx.burst(part, point, 7 if kind != "peck" else 3)
-    if th.flies:
-        audio.play("caw", 0.6)
+    if th.kind == "djiti":
+        audio.play("chatter", 0.8)
+    elif th.flies:
+        audio.play("caw", 0.7, min_gap=0.4)
     elif th.kind == "cat":
         audio.play("meow", 0.7)
+    elif th.kind == "dad":
+        audio.play("grumble", 0.8)
 
+    label = None
     if th.is_kid:
         if getattr(th, "icecream", None):
             th.icecream = None
@@ -117,22 +127,29 @@ def apply_hit(game, th, kind, zone, point):
             hat = th.hat
             th.hat = None
             game.steal_hat(th, hat)
-        if not ko and random.random() < 0.35 and not was_fleeing:
-            fx.text(random.choice(WORDS["flee"]), th.head_pos(), "plain", 20, drift=-40)
-            audio.play("waah", 0.6)
+        if not was_fleeing:
+            if th.innocent:  # scared stiff, and now screaming for mum
+                audio.play("mum", 1.0, min_gap=0.5)
+                fx.text("MUUUUM!", (hx, hy - 4), "plain", 18, drift=-45)
+                pts += T.INNOCENT_BONUS * mult
+                label = "CHEEKY!"
+            else:
+                audio.play("waah", 0.8, min_gap=0.5)
 
     if ko:
-        bonus = th.score * T.KO_BONUS_MULT * mult
-        hx, hy = th.head_pos()
-        fx.text(random.choice(WORDS["ko"]), (hx, hy - 34), "ko", 32, life=0.9)
         fx.big_hit()
-        audio.play("ko")
-        game.add_score(bonus, (hx, hy - 70), label="KO")
+        audio.play("ko", 0.6)
+        pts += th.score * T.KO_BONUS_MULT * mult
         game.wave_kos += 1
-        if th.first_seen is not None and game.clock - th.first_seen <= T.QUICK_KO_WINDOW:
-            game.add_score(T.QUICK_KO_BONUS, (hx, hy - 96), label="QUICK!")
+        if th.is_kid:
+            game.kid_hit(th)
+        if th.first_seen is not None and game.clock - th.first_seen <= T.QUICK_KO_WINDOW and not th.innocent:
+            pts += T.QUICK_KO_BONUS
+            label = label or "QUICK!"
+    game.add_score(pts, (spot[0], spot[1] - 30), label=label)
 
     if game.combo >= 5 and game.combo % 5 == 0:
-        m = game.magpie
-        fx.text(random.choice(WORDS["combo"]), (m.pos[0], m.pos[1] - 60), "big", 30, life=0.9)
-        audio.play("egg", 0.5)
+        # shout it up by the combo counter, not over the action
+        fx.text(random.choice(WORDS["combo"]), (game.cam[0] + 170, game.cam[1] + 100), "big", 24, life=0.9,
+                drift=0)
+        audio.play("chortle", 0.8)

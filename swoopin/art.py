@@ -93,10 +93,19 @@ def star(dst, c, r, col):
 # Magpie
 # --------------------------------------------------------------------------
 
-def draw_magpie(flap, tucked=False, stunned=False, flash=False):
+def draw_magpie(flap, tucked=False, stunned=False, flash=False, standing=False, walk=0.0):
     s = _surf(76, 56)
     body = P.CHARCOAL
     white = P.BONE if not flash else P.WATTLE
+    if standing:  # two legs, alternating stride; feet land 24px below the anchor
+        tucked = True
+        for hip_x, ph in ((33, 0.0), (40, math.pi)):
+            fx = hip_x + math.sin(walk + ph) * 5
+            lift = max(0.0, -math.cos(walk + ph)) * 3
+            knee = (hip_x + (fx - hip_x) * 0.5 + 2, 43 - lift)
+            pygame.draw.line(s, P.DARK_GREY, (hip_x, 36), knee, 3)
+            pygame.draw.line(s, P.DARK_GREY, knee, (fx, 50 - lift), 3)
+            pygame.draw.line(s, P.DARK_GREY, (fx - 3, 50 - lift), (fx + 5, 50 - lift), 2)
     # tail: white base, black tip band
     opoly(s, white, [(20, 27), (3, 22), (3, 34), (20, 32)], 2, P.DARK_GREY)
     pygame.draw.polygon(s, body, [(3, 22), (9, 23), (9, 33), (3, 34)])
@@ -143,10 +152,13 @@ SHIRTS = [P.DEEP_GUM, P.WARATAH, P.DENIM, P.OCHRE]
 
 
 def draw_kid(walk, shirt=P.DEEP_GUM, hat="bucket", helmet=False, ko=False,
-             duck=False, scared=False, throwing=0.0, icecream=None):
+             duck=False, scared=False, throwing=0.0, icecream=None, brat=False, bag=False):
     s = _surf(64, 84)
     fx, fy = 32, 80  # feet anchor
     dy = 10 if duck else 0
+    if bag:  # school backpack, behind the body
+        pygame.draw.rect(s, P.OCHRE, (fx - 17, fy - 48 + dy, 10, 16), border_radius=3)
+        pygame.draw.rect(s, OUT, (fx - 17, fy - 48 + dy, 10, 16), 2, border_radius=3)
     # legs
     sw = math.sin(walk) * 6 if not duck else 0
     for side, ph in ((-3, sw), (3, -sw)):
@@ -195,9 +207,12 @@ def draw_kid(walk, shirt=P.DEEP_GUM, hat="bucket", helmet=False, ko=False,
         pygame.draw.circle(s, OUT, (ex, ey), 2)
         if scared:
             pygame.draw.circle(s, OUT, (hc[0] + 6, hc[1] + 6), 3)
-            pygame.draw.line(s, OUT, (ex - 3, ey - 6), (ex + 3, ey - 4), 2)
+            pygame.draw.line(s, OUT, (ex - 3, ey - 7), (ex + 3, ey - 5), 2)
+        elif brat:  # scowl + smirk
+            pygame.draw.line(s, OUT, (ex - 4, ey - 6), (ex + 3, ey - 3), 2)
+            pygame.draw.line(s, OUT, (hc[0] + 3, hc[1] + 6), (hc[0] + 8, hc[1] + 4), 2)
         else:
-            pygame.draw.line(s, OUT, (hc[0] + 4, hc[1] + 6), (hc[0] + 8, hc[1] + 5), 2)
+            pygame.draw.arc(s, OUT, (hc[0] + 2, hc[1] + 1, 7, 6), math.pi * 1.1, math.pi * 1.9, 2)
     # headwear
     if helmet:  # ice-cream container
         pygame.draw.rect(s, P.BONE, (hc[0] - 11, hc[1] - 16, 22, 12), border_radius=2)
@@ -225,7 +240,7 @@ def draw_cap(s, c):
     opoly(s, P.WARATAH, [(x + 6, y + 1), (x + 18, y + 3), (x + 6, y + 5)], 2)
 
 
-def draw_bike_kid(walk, shirt=P.WARATAH, ko=False, scared=False):
+def draw_bike_kid(walk, shirt=P.WARATAH, ko=False, scared=False, brat=False):
     s = _surf(76, 84)
     fx, fy = 38, 80
     # wheels
@@ -257,6 +272,8 @@ def draw_bike_kid(walk, shirt=P.WARATAH, ko=False, scared=False):
         pygame.draw.circle(s, OUT, (ex, ey), 2)
         if scared:
             pygame.draw.circle(s, OUT, (hc[0] + 6, hc[1] + 6), 3)
+        elif brat:
+            pygame.draw.line(s, OUT, (ex - 4, ey - 6), (ex + 3, ey - 3), 2)
     # helmet dome with cable ties
     dome = [(hc[0] + math.cos(math.radians(a)) * 13, hc[1] - 5 - math.sin(math.radians(a)) * 10)
             for a in range(0, 181, 15)]
@@ -299,6 +316,50 @@ def draw_postie(walk, ko=False):
         pygame.draw.circle(s, OUT, (ex, ey), 2)
         pygame.draw.line(s, OUT, (ex - 2, ey + 6), (ex + 4, ey + 6), 2)  # moustache
     return s, (fx, fy)
+
+
+def draw_dad(walk, ko=False):
+    """Big bloke: navy singlet over a beer gut, stubbies, thongs, akubra, mo."""
+    s = _surf(84, 112)
+    fx, fy = 42, 108
+    sw = math.sin(walk) * 7
+    for side, ph in ((-6, sw), (6, -sw)):
+        oline(s, P.SKIN, (fx + side, fy - 34), (fx + side + ph, fy - 4), 7)
+        pygame.draw.ellipse(s, P.WARATAH, (fx + side + ph - 6, fy - 5, 14, 5))  # thongs
+    pygame.draw.rect(s, P.TAN, (fx - 15, fy - 46, 30, 16), border_radius=3)  # stubbies
+    pygame.draw.rect(s, OUT, (fx - 15, fy - 46, 30, 16), 2, border_radius=3)
+    oellipse(s, P.SKIN, (fx - 14, fy - 66, 34, 28))  # gut
+    opoly(s, P.DENIM, [(fx - 15, fy - 54), (fx - 13, fy - 84), (fx + 13, fy - 84), (fx + 17, fy - 56),
+                       (fx + 4, fy - 50)], 2)
+    oline(s, P.SKIN, (fx + 6, fy - 80), (fx + 22, fy - 66), 6)  # arm forward to the gun
+    oline(s, P.SKIN, (fx - 8, fy - 80), (fx - 14, fy - 58), 6)
+    hc = (fx + 4, fy - 86)
+    ocircle(s, P.SKIN, hc, 12)
+    pygame.draw.circle(s, P.WARATAH, (hc[0] + 6, hc[1] + 4), 4)  # red-faced
+    ex, ey = hc[0] + 5, hc[1] - 2
+    if ko:
+        xeye(s, (ex, ey), 3)
+    else:
+        pygame.draw.circle(s, OUT, (ex, ey), 2)
+        pygame.draw.line(s, OUT, (ex - 5, ey - 6), (ex + 4, ey - 3), 3)  # furious brow
+    pygame.draw.line(s, OUT, (hc[0] + 2, hc[1] + 7), (hc[0] + 13, hc[1] + 7), 4)  # mo
+    # akubra
+    opoly(s, P.FENCE, [(hc[0] - 18, hc[1] - 8), (hc[0] + 20, hc[1] - 8), (hc[0] + 14, hc[1] - 12),
+                       (hc[0] - 12, hc[1] - 12)], 2)
+    opoly(s, P.FENCE, [(hc[0] - 9, hc[1] - 11), (hc[0] - 7, hc[1] - 22), (hc[0] + 9, hc[1] - 22),
+                       (hc[0] + 11, hc[1] - 11)], 2)
+    pygame.draw.line(s, P.FENCE_SHADE, (hc[0] - 9, hc[1] - 13), (hc[0] + 11, hc[1] - 13), 3)
+    return s, (fx, fy)
+
+
+def draw_shotgun():
+    """Pointing right; anchor at the shoulder end of the stock. Muzzle 46px out."""
+    s = _surf(70, 16)
+    opoly(s, P.FENCE, [(4, 6), (22, 5), (22, 11), (4, 13)], 2)  # stock
+    pygame.draw.line(s, OUT, (20, 7), (62, 7), 5)  # barrel
+    pygame.draw.line(s, P.DARK_GREY, (22, 6), (62, 6), 1)
+    opoly(s, P.FENCE, [(34, 9), (46, 9), (46, 13), (34, 13)], 1)  # pump
+    return s, (16, 8)
 
 
 # --------------------------------------------------------------------------
@@ -493,6 +554,14 @@ def draw_prop(kind, spin=0.0):
         s = _surf(10, 5)
         pygame.draw.ellipse(s, P.EUCALYPT, (0, 0, 10, 5))
         return s, (5, 2)
+    if kind == "pellet":
+        s = _surf(4, 4)
+        pygame.draw.circle(s, P.CHARCOAL, (2, 2), 2)
+        return s, (2, 2)
+    if kind == "smoke":
+        s = _surf(16, 16)
+        pygame.draw.circle(s, (*P.GREY, 150), (8, 8), 7)
+        return s, (8, 8)
     if kind == "fur":
         s = _surf(7, 4)
         pygame.draw.ellipse(s, P.TAN, (0, 0, 7, 4))

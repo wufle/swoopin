@@ -127,7 +127,7 @@ class Particle:
     def update(self, dt):
         self.t += dt
         self.vel[0] *= 1 - 2.5 * dt
-        self.vel[1] = self.vel[1] * (1 - 2.5 * dt) + 160 * dt
+        self.vel[1] = self.vel[1] * (1 - 2.5 * dt) + (-50 if self.kind == "smoke" else 160) * dt
         self.pos[0] += (self.vel[0] + math.sin(self.t * 9 + self.angle) * 30) * dt
         self.pos[1] += self.vel[1] * dt
         self.angle += self.spin * dt
@@ -244,20 +244,40 @@ class FX:
         self.splats = []
         self.shake = Shake()
         self.hitpause = 0
+        self.avoid = None  # callable -> (x, y) of the magpie; text never spawns on it
 
     MAX_BURSTS = 2
+    AVOID_R = 125
 
     def text(self, word, pos, style="hit", size=30, **kw):
         pos = [pos[0], pos[1]]
+        if self.avoid:
+            mx, my = self.avoid()
+            dx, dy = pos[0] - mx, pos[1] - my
+            d = math.hypot(dx, dy)
+            if d < self.AVOID_R:
+                if d < 1:
+                    dx, dy, d = 0.0, -1.0, 1.0
+                # push out of the bubble, biased upwards so it reads clear of the bird
+                dy = min(dy, -abs(dx) * 0.3)
+                d = math.hypot(dx, dy) or 1
+                pos = [mx + dx / d * self.AVOID_R, my + dy / d * self.AVOID_R]
         if style != "plain":
-            # keep big bursts readable: cap how many are up, and nudge apart
+            # keep big bursts readable: cap how many are up at once
             bursts = [t for t in self.texts if t.style != "plain"]
             if len(bursts) >= self.MAX_BURSTS:
                 self.texts.remove(bursts[0])
-            for t in bursts[-self.MAX_BURSTS + 1:]:
-                if abs(t.pos[0] - pos[0]) < 120 and abs(t.pos[1] - pos[1]) < 40:
-                    pos[1] = t.pos[1] - 44
-        self.texts.append(ComicText(word, pos, style, size, **kw))
+        # stack upwards instead of drawing on top of anything recent
+        gap = 46 if style != "plain" else 26
+        for _ in range(4):
+            clash = [t for t in self.texts if t.t < 0.4 and abs(t.pos[0] - pos[0]) < 110
+                     and abs(t.pos[1] - pos[1]) < (t.gap + gap) / 2]
+            if not clash:
+                break
+            pos[1] = min(t.pos[1] for t in clash) - (max(t.gap for t in clash) + gap) / 2
+        text = ComicText(word, pos, style, size, **kw)
+        text.gap = gap
+        self.texts.append(text)
 
     def burst(self, kind, pos, n=8, speed=180, life=1.2):
         for _ in range(n):

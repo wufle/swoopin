@@ -37,6 +37,8 @@ CLAW_REACH = 24
 CLAW_RADIUS = 24
 PECK_COOLDOWN = 0.4
 STUN_TIME = 0.6
+WALK_SPEED = 95.0
+HARD_LANDING = 560.0  # falling faster than this onto the ground is a stumble
 HIT_STUN_TIME = 0.45
 INVULN_TIME = 1.0
 
@@ -68,17 +70,41 @@ EGG_SAVED_BONUS = 150
 COMBO_STEP = 3  # hits per +1 multiplier
 COMBO_MAX_MULT = 5
 
-# Threat base stats: hp, speed (px/s), score, time at nest to do damage
+# Threat base stats: hp, speed (px/s), score, time at nest to do damage.
+# Most things go down in one good hit; posties, goannas and dads take more.
+# Only multi-hit types get extra hp as the season goes on.
 THREATS = {
-    "kid": dict(hp=2, speed=55, score=10, attack_time=3.0),
-    "bike": dict(hp=2, speed=120, score=15, attack_time=2.6),
-    "postie": dict(hp=4, speed=140, score=25, attack_time=2.4),
-    "crow": dict(hp=2, speed=90, score=20, attack_time=2.2),
+    "kid": dict(hp=1, speed=55, score=10, attack_time=3.0),
+    "bike": dict(hp=1, speed=120, score=15, attack_time=2.6),
+    "postie": dict(hp=2, speed=140, score=25, attack_time=2.4),
+    "crow": dict(hp=1, speed=90, score=20, attack_time=2.2),
     "butcherbird": dict(hp=1, speed=150, score=25, attack_time=1.2),
     "djiti": dict(hp=1, speed=185, score=35, attack_time=1.6),
-    "cat": dict(hp=3, speed=70, score=20, attack_time=1.2),
-    "goanna": dict(hp=6, speed=32, score=40, attack_time=1.6),
+    "cat": dict(hp=1, speed=70, score=20, attack_time=1.2),
+    "goanna": dict(hp=3, speed=32, score=40, attack_time=1.6),
+    "dad": dict(hp=3, speed=70, score=60, attack_time=99),
 }
+
+# Innocent kids just walking past: scared of the magpie, but cheeky bonus
+# points if you get them anyway. Too many kids hit brings out angry dads.
+INNOCENT_INTERVAL_START = 5.5
+INNOCENT_INTERVAL_END = 3.2
+INNOCENT_MAX = 4
+INNOCENT_BIKE_CHANCE = 0.3
+INNOCENT_BONUS = 50
+INNOCENT_PANIC_RANGE = 160
+DAD_RAGE_THRESHOLD = 4  # kids knocked out (roughly) before a dad turns up
+DAD_RAGE_DECAY = 1 / 30  # rage points forgiven per second
+DAD_RAGE_BRAT = 0.3  # a nest-raiding brat only counts this much
+DAD_MAX = 2
+DAD_SHOTS = 3
+DAD_AIM_START = 1.7  # seconds of visible aiming before the shot
+DAD_AIM_END = 1.05
+DAD_LOCK = 0.35  # aim stops tracking this long before firing
+DAD_PELLETS = 5
+DAD_SPREAD = 0.07
+DAD_PELLET_SPEED = 1000
+SHOT_STUN_TIME = 1.1
 CLIMB_SPEED = {"cat": 38, "goanna": 20}
 
 # Difficulty scaling (difficulty d runs 0 -> 1 over the season)

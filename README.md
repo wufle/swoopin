@@ -1,10 +1,15 @@
 # Swoopin
 
 It's spring in an Aussie suburb, you're a magpie, and everyone is after your
-eggs. Flap Flappy Bird-style around your gum tree and swoop the kids, posties,
-crows, butcherbirds, Djiti Djiti (willie wagtails), cats and goannas that come
-from every direction. Each hit lands with a comic-book **BANG!**, **CLAWED!** or
-**BULLSEYE!**, and a kid hit hard enough goes down with X's for eyes.
+eggs. Flap Flappy Bird-style around your gum tree and swoop the brats,
+posties, crows, butcherbirds, Djiti Djiti (willie wagtails), cats and goannas
+that come from every direction. Most attackers go down in one good hit, landing
+with a comic-book **BANG!**, **CLAWED!** or **BULLSEYE!**. Kids go down with X's
+for eyes.
+
+Most kids are just walking past, terrified of you. Swooping them anyway gets
+you a cheeky bonus and sends them screaming for mum. Hit too many and an
+**angry dad with a shotgun** comes looking for you.
 
 Survive the full 10-minute swooping season (Aug → Nov) and the chicks fledge.
 Lose every egg and the nest is raided.
@@ -20,8 +25,13 @@ pip install -r requirements.txt
 ## Run
 
 ```sh
-python -m swoopin          # add --mute for no sound
+python -m swoopin               # --mute for no sound
+python -m swoopin --fullscreen  # or --windowed; F11 / Alt+Enter toggles in game
 ```
+
+Full screen is remembered between runs. The game renders at 960×540 and
+scales crisply: exactly 2× at 1080p and 4× at 4K, with letterboxing on other
+aspect ratios.
 
 ## Controls
 
@@ -30,10 +40,10 @@ python -m swoopin          # add --mute for no sound
 | Space / W / Up / left-click | Flap (gravity always pulls you down) |
 | S / Down / right-click | Swoop dive in the facing direction. A hit bounces you back up to chain combos |
 | Shift / X | Claw: short-range slash. Does double damage to climbers on the trunk |
-| A D / Left Right | Steer and turn |
+| A D / Left Right | Steer and turn in the air, or walk on two legs once you've landed |
 | P / Esc | Pause (Q while paused quits to the title screen) |
 | F1 | Debug overlay (difficulty, spawn stats) |
-| F11 | Fullscreen |
+| F11 / Alt+Enter | Toggle fullscreen |
 
 ## Scoring
 
@@ -44,6 +54,13 @@ python -m swoopin          # add --mute for no sound
   attacker appearing, for nicking a kid's hat (it goes in your nest), for
   getting a stolen egg back, and for perfect waves. A perfect wave also gives
   back a lost egg.
+- Swooping an innocent kid earns a **CHEEKY!** bonus but fills the
+  **DAD-O-METER**. When it's full, an angry dad marches in, takes slow, visible
+  aim (a dashed red line that locks just before he fires), and lets fly with a
+  shotgun spread. Get out of the line, or swoop him to spoil his aim. He takes
+  three hits.
+- Land gently and you can walk around on the footpath and peck at shins. Hit
+  the ground in a dive, or drop from a great height, and you'll stumble.
 - Flying too far from the nest drains your territory meter and drags you back.
 
 ## Code layout

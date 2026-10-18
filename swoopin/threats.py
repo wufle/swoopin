@@ -29,6 +29,7 @@ def trunk_half_width(y):
 class Threat:
     kind = "?"
     is_kid = False
+    innocent = False
     flies = False
     climbs = False
     ZONES = []
@@ -38,7 +39,9 @@ class Threat:
         self.side = side  # -1 came from the left, +1 from the right
         st = T.THREATS[self.kind]
         d = game.d
-        self.max_hp = st["hp"] + (1 if d >= T.HP_PLUS_ONE_AT else 0) + (1 if d >= T.HP_PLUS_TWO_AT else 0)
+        self.max_hp = st["hp"]
+        if st["hp"] > 1:
+            self.max_hp += (1 if d >= T.HP_PLUS_ONE_AT else 0) + (1 if d >= T.HP_PLUS_TWO_AT else 0)
         self.hp = float(self.max_hp)
         self.speed = st["speed"] * (1 + T.SPEED_SCALE_MAX * d)
         self.score = st["score"]
@@ -148,8 +151,12 @@ class Walker(Threat):
     stop_dist = 46
     can_throw = False
 
-    def __init__(self, game, side):
+    def __init__(self, game, side, innocent=False):
         super().__init__(game, side)
+        self.innocent = innocent
+        if innocent:
+            self.state = "stroll"
+            self.speed *= random.uniform(0.85, 1.15)
         self.pos = [NX + side * (T.WORLD_W / 2 + 60), float(GY)]
         self.target_x = NX + side * self.stop_dist
         self.scatter_t = 0.0
@@ -195,6 +202,9 @@ class Walker(Threat):
             self.exit_check()
             return
 
+        if self.state == "stroll":
+            self.stroll(dt)
+            return
         self.maybe_duck()
         self.anim += dt * (10 if self.state != "attack" else 0)
         if self.scatter_t > 0:
@@ -232,13 +242,29 @@ class Walker(Threat):
                 g.nest_hit(self)
                 self.state = "flee_win"
 
+    def stroll(self, dt):
+        """Innocent passer-by: walk straight past the tree, panic near the magpie."""
+        g = self.game
+        m = g.magpie
+        self.facing = -self.side
+        near = math.hypot(m.pos[0] - self.pos[0], m.pos[1] - (self.pos[1] - 40)) < T.INNOCENT_PANIC_RANGE
+        if near:
+            if self.scared_t <= 0:
+                g.audio.play("scream", 0.5, min_gap=1.2)
+            self.scared_t = 0.5
+        run = 1.9 if self.scared_t > 0 else 1.0
+        self.anim += dt * 10 * run
+        self.pos[0] += -self.side * self.speed * run * dt
+        if self.pos[0] < -120 or self.pos[0] > T.WORLD_W + 120:
+            self.state = "gone"
+
     def toss_at_nest(self):
         hx, hy = self.head_pos()
         self.game.fx.prop("rock", (hx, hy), (0, 0), target=(NX + random.uniform(-12, 12), NY - 4), spin=600)
 
     def maybe_throw(self, dt):
         g = self.game
-        if not self.can_throw or g.clock < 90 or self.scared_t > 0:
+        if not self.can_throw or self.innocent or g.clock < 90 or self.scared_t > 0:
             return
         self.throw_t -= dt
         if self.throw_t > 0:
@@ -266,7 +292,7 @@ class Walker(Threat):
     def maybe_duck(self):
         g = self.game
         m = g.magpie
-        if g.d < T.DUCK_FROM or self.state not in ("approach", "attack"):
+        if self.innocent or g.d < T.DUCK_FROM or self.state not in ("approach", "attack"):
             return
         if m.state != "swoop" or m.swoop_id == self.duck_checked:
             return
@@ -291,12 +317,13 @@ class Kid(Walker):
     ZONES = [("eye", (5, -54), 3.5), ("head", (0, -52), 11), ("body", (0, -36), 14)]
     DUCK_ZONES = [("body", (0, -28), 12)]
 
-    def __init__(self, game, side, helmet=False):
-        super().__init__(game, side)
+    def __init__(self, game, side, helmet=False, innocent=False):
+        super().__init__(game, side, innocent)
         self.shirt = random.choice(art.SHIRTS)
-        self.helmet = helmet
-        self.hat = None if helmet else random.choice(["bucket", "bucket", "cap", None])
-        self.icecream = random.choice([P.WARATAH, P.BONE, None]) if not helmet else None
+        self.helmet = helmet and not innocent
+        self.hat = None if self.helmet else random.choice(["bucket", "bucket", "cap", None])
+        self.icecream = random.choice([P.WARATAH, P.BONE, None]) if not self.helmet else None
+        self.bag = innocent and random.random() < 0.7
 
     def zone_list(self):
         return self.DUCK_ZONES if self.duck_t > 0 else self.ZONES
@@ -305,7 +332,8 @@ class Kid(Walker):
         ko = self.state == "ko"
         scared = self.scared_t > 0 or self.state in ("flee", "flee_win") or self.scatter_t > 0
         surf, anchor = art.draw_kid(self.anim, self.shirt, self.hat, self.helmet, ko=ko, duck=self.duck_t > 0,
-                                    scared=scared and not ko, throwing=self.throw_anim, icecream=self.icecream)
+                                    scared=scared and not ko, throwing=self.throw_anim, icecream=self.icecream,
+                                    brat=not self.innocent, bag=self.bag)
         art.blit_actor(dst, surf, anchor, (self.pos[0] - cam[0], self.pos[1] - cam[1] - (6 if ko else 0)),
                        self.facing, self.angle)
 
@@ -317,8 +345,8 @@ class BikeKid(Walker):
     ZONES = [("eye", (7, -52), 3.5), ("backhead", (-8, -48), 6), ("helmet", (2, -60), 10), ("head", (4, -48), 8),
              ("body", (-2, -30), 16)]
 
-    def __init__(self, game, side):
-        super().__init__(game, side)
+    def __init__(self, game, side, innocent=False):
+        super().__init__(game, side, innocent)
         self.shirt = random.choice(art.SHIRTS)
         self.crashed = False
 
@@ -335,11 +363,12 @@ class BikeKid(Walker):
         ko = self.state == "ko"
         p = (self.pos[0] - cam[0], self.pos[1] - cam[1])
         if self.crashed:
-            surf, anchor = art.draw_kid(self.anim, self.shirt, None, False, ko=ko, scared=not ko)
+            surf, anchor = art.draw_kid(self.anim, self.shirt, None, False, ko=ko, scared=not ko,
+                                        brat=not self.innocent)
             art.blit_actor(dst, surf, anchor, (p[0], p[1] - (6 if ko else 0)), self.facing, self.angle)
             return
         scared = self.scared_t > 0 or self.state in ("flee", "flee_win")
-        surf, anchor = art.draw_bike_kid(self.anim, self.shirt, ko=ko, scared=scared)
+        surf, anchor = art.draw_bike_kid(self.anim, self.shirt, ko=ko, scared=scared, brat=not self.innocent)
         art.blit_actor(dst, surf, anchor, p, self.facing, self.angle)
 
     def update(self, dt):
@@ -370,6 +399,152 @@ class Postie(Walker):
         ko = self.state == "ko"
         surf, anchor = art.draw_postie(self.anim, ko=ko)
         art.blit_actor(dst, surf, anchor, (self.pos[0] - cam[0], self.pos[1] - cam[1]), self.facing, self.angle)
+
+
+class Dad(Walker):
+    """Angry dad with a shotgun. Turns up when too many kids have been hit.
+
+    Walks in, plants his feet, takes a slow visible aim at the magpie (a
+    dashed line that tracks, then locks), fires a spread of pellets, pumps,
+    and goes again. Storms off after a few shots or when knocked out.
+    """
+
+    kind = "dad"
+    ZONES = [("eye", (9, -86), 3.5), ("head", (4, -84), 12), ("body", (0, -52), 22)]
+
+    def __init__(self, game, side):
+        super().__init__(game, side)
+        self.stand_x = NX + side * random.uniform(260, 470)
+        self.shots = T.DAD_SHOTS
+        self.aim_t = 0.0
+        self.cool_t = 0.0
+        self.aim = -math.pi / 2 - side * 0.6  # radians, screen space
+        self.recoil = 0.0
+
+    @property
+    def threatening(self):
+        return self.state == "aim"
+
+    def shoulder(self):
+        return self.pos[0] + self.facing * 6, self.pos[1] - 62
+
+    def muzzle(self):
+        sx, sy = self.shoulder()
+        return sx + math.cos(self.aim) * 46, sy + math.sin(self.aim) * 46
+
+    def update(self, dt):
+        Threat.update(self, dt)
+        g = self.game
+        m = g.magpie
+        self.recoil = max(0.0, self.recoil - dt * 4)
+        if self.state == "ko":
+            self.fall_t = min(1.0, self.fall_t + dt * 4)
+            self.angle = self.ko_angle() * self.fall_t
+            self.ko_t -= dt
+            if self.ko_t <= 0:
+                self.state = "flee"
+                self.angle = self.fall_t = 0
+                g.audio.play("grumble")
+            return
+        if self.state in ("flee", "flee_win"):
+            self.facing = self.side
+            self.anim += dt * 9
+            self.pos[0] += self.side * self.speed * 1.2 * dt
+            self.exit_check()
+            return
+        if self.state == "approach":
+            self.facing = -self.side
+            self.anim += dt * 9
+            dx = self.stand_x - self.pos[0]
+            step = self.speed * dt
+            if abs(dx) <= step:
+                self.pos[0] = self.stand_x
+                self.start_aim()
+                g.audio.play("oi")
+                g.fx.text("OI!", self.head_pos(), "bad", 26)
+            else:
+                self.pos[0] += math.copysign(step, dx)
+            return
+        # track the magpie, facing it
+        sx, sy = self.shoulder()
+        want = math.atan2(m.pos[1] - sy, m.pos[0] - sx)
+        if want > -0.05:  # never aim below the horizon
+            want = -0.05 if want < math.pi / 2 else -math.pi + 0.05
+        self.facing = 1 if math.cos(want) >= 0 else -1
+        if self.state == "aim":
+            self.aim_t -= dt
+            if self.aim_t > T.DAD_LOCK:
+                diff = (want - self.aim + math.pi) % math.tau - math.pi
+                self.aim += max(-2.4 * dt, min(2.4 * dt, diff))
+            if self.aim_t <= 0:
+                self.fire()
+        elif self.state == "cool":
+            diff = (want - self.aim + math.pi) % math.tau - math.pi
+            self.aim += max(-1.5 * dt, min(1.5 * dt, diff))
+            self.cool_t -= dt
+            if self.cool_t <= 0:
+                if self.shots <= 0:
+                    self.state = "flee"
+                    g.audio.play("grumble")
+                else:
+                    self.start_aim()
+
+    def start_aim(self):
+        self.state = "aim"
+        self.aim_t = lerp(T.DAD_AIM_START, T.DAD_AIM_END, self.game.d)
+
+    def fire(self):
+        g = self.game
+        mx, my = self.muzzle()
+        for i in range(T.DAD_PELLETS):
+            a = self.aim + (i - (T.DAD_PELLETS - 1) / 2) * T.DAD_SPREAD + random.uniform(-0.015, 0.015)
+            g.spawn_projectile(Pellet((mx, my), (math.cos(a) * T.DAD_PELLET_SPEED, math.sin(a) * T.DAD_PELLET_SPEED)))
+        g.audio.play("shotgun")
+        g.fx.text("BLAM!", (mx - math.cos(self.aim) * 10, my - 30), "big", 28)
+        g.fx.burst("smoke", (mx, my), 6, 90, 0.8)
+        g.fx.shake.add(T.SHAKE_BIG)
+        self.recoil = 1.0
+        self.shots -= 1
+        self.state = "cool"
+        self.cool_t = 1.1
+        g.later(0.45, lambda: g.audio.play("pump"))
+
+    def on_hurt(self, from_pos):
+        self.scared_t = 0.6
+        if self.state == "aim":  # spoil his aim
+            self.state = "cool"
+            self.cool_t = 0.8
+
+    def draw(self, dst, cam):
+        ko = self.state == "ko"
+        p = (self.pos[0] - cam[0], self.pos[1] - cam[1])
+        surf, anchor = art.draw_dad(self.anim if self.state in ("approach", "flee") else 0, ko=ko)
+        art.blit_actor(dst, surf, anchor, (p[0], p[1] - (8 if ko else 0)), self.facing, self.angle)
+        if ko:
+            return
+        if self.state == "aim":
+            locked = self.aim_t <= T.DAD_LOCK
+            if not locked or int(self.aim_t * 30) % 2 == 0:
+                mx, my = self.muzzle()
+                ca, sa = math.cos(self.aim), math.sin(self.aim)
+                for k in range(0, 640, 22):
+                    a = (mx + ca * k - cam[0], my + sa * k - cam[1])
+                    b = (mx + ca * (k + 12) - cam[0], my + sa * (k + 12) - cam[1])
+                    pygame.draw.line(dst, P.WARATAH, a, b, 3 if locked else 2)
+        if self.state in ("aim", "cool"):
+            sx, sy = self.shoulder()
+            gun, ganchor = art.draw_shotgun()
+            back = self.recoil * 6
+            gx = sx - math.cos(self.aim) * back - cam[0]
+            gy = sy - math.sin(self.aim) * back - cam[1]
+            if math.cos(self.aim) >= 0:
+                art.blit_actor(dst, gun, ganchor, (gx, gy), 1, -math.degrees(self.aim))
+            else:  # flip so the gun stays right way up when aiming left
+                art.blit_actor(dst, gun, ganchor, (gx, gy), -1, -math.degrees(self.aim) - 180)
+        elif self.state in ("approach", "flee"):
+            sx, sy = self.shoulder()
+            gun, ganchor = art.draw_shotgun()
+            art.blit_actor(dst, gun, ganchor, (sx - cam[0], sy - cam[1] + 6), self.facing, -60 * self.facing)
 
 
 # --------------------------------------------------------------------------
@@ -772,6 +947,30 @@ class Projectile:
 
     def draw(self, dst, cam):
         art.blit_actor(dst, self.surf, self.anchor, (self.pos[0] - cam[0], self.pos[1] - cam[1]), 1, self.angle)
+
+
+class Pellet(Projectile):
+    def __init__(self, pos, vel):
+        super().__init__("pellet", pos, vel)
+        self.life = 0.9
+
+    def update(self, dt, game):
+        self.life -= dt
+        self.pos[0] += self.vel[0] * dt
+        self.pos[1] += self.vel[1] * dt
+        m = game.magpie
+        if math.hypot(m.pos[0] - self.pos[0], m.pos[1] - self.pos[1]) < 16:
+            if m.hurt(self.pos[0] - self.vel[0], T.SHOT_STUN_TIME):
+                game.magpie_hurt(self, "PEPPERED!")
+                game.fx.burst("feather", m.pos, 10, 260)
+                game.fx.burst("feather_w", m.pos, 5, 220)
+            self.alive = False
+        if self.life <= 0 or self.pos[1] < -40 or not (-60 < self.pos[0] < T.WORLD_W + 60):
+            self.alive = False
+
+    def draw(self, dst, cam):
+        x, y = self.pos[0] - cam[0], self.pos[1] - cam[1]
+        pygame.draw.line(dst, P.CHARCOAL, (x, y), (x - self.vel[0] * 0.012, y - self.vel[1] * 0.012), 2)
 
 
 def progress_bar(dst, pos, k, cam):

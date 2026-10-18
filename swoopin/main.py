@@ -21,7 +21,24 @@ from .spawner import Spawner
 from .threats import progress_bar
 
 W, H = T.SCREEN_W, T.SCREEN_H
-SCORE_FILE = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "swoopin" / "highscore.json"
+DATA_DIR = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "swoopin"
+SCORE_FILE = DATA_DIR / "highscore.json"
+SETTINGS_FILE = DATA_DIR / "settings.json"
+
+
+def load_settings():
+    try:
+        return json.loads(SETTINGS_FILE.read_text())
+    except Exception:
+        return {}
+
+
+def save_settings(settings):
+    try:
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        SETTINGS_FILE.write_text(json.dumps(settings))
+    except OSError:
+        pass
 
 
 def load_high():
@@ -64,6 +81,7 @@ class Game:
         self.threats = []
         self.projectiles = []
         self.fx = FX()
+        self.fx.avoid = lambda: self.magpie.pos
         self.hud = HUD()
         self.level.trophy_hats = 0
         self.score = 0
@@ -113,13 +131,20 @@ class Game:
     def notify_ko(self, th):
         if th.is_kid and self.spawner.phase >= 3:
             for o in self.threats:
-                if o is not th and o.is_kid and o.state == "approach" and abs(o.pos[0] - th.pos[0]) < 170:
+                if (o is not th and o.is_kid and not o.innocent and o.state == "approach"
+                        and abs(o.pos[0] - th.pos[0]) < 170):
                     o.scatter_t = 1.4
 
+    def kid_hit(self, th):
+        self.spawner.kid_hit(th)
+
     def say_flee(self, th):
-        if th.is_kid:
+        if th.is_kid and th.innocent:  # off home, crying for mum
+            self.fx.text("MUUUUM!", th.head_pos(), "plain", 20, drift=-40)
+            self.audio.play("mum", 0.8, min_gap=0.8)
+        elif th.is_kid:
             self.fx.text(random.choice(hits.WORDS["flee"]), th.head_pos(), "plain", 20, drift=-40)
-            self.audio.play("waah", 0.5)
+            self.audio.play("waah", 0.6, min_gap=0.8)
         elif th.kind == "cat":
             self.fx.text("HISSS!", th.head_pos(), "plain", 18, drift=-40)
 
@@ -250,6 +275,8 @@ class Game:
                 self.fx.text("THUD!", (self.magpie.pos[0], self.magpie.pos[1] - 20), "bad", 20)
                 self.fx.burst("feather", self.magpie.pos, 4)
                 self.audio.play("thud")
+            elif ev == "landed":
+                self.combo = 0
             elif ev == "pulled":
                 self.banner("BACK TO THE NEST!", sub=True)
 
@@ -371,8 +398,8 @@ class Game:
         dst.blit(logo, (W / 2 - logo.get_width() / 2, 20))
         sub = tc.get("Defend the nest. Swoop the lot of 'em.", 22, P.BONE, P.CHARCOAL, 2)
         dst.blit(sub, (W / 2 - sub.get_width() / 2, 150))
-        controls = ["SPACE / W / UP / CLICK   flap", "S / DOWN   swoop dive", "SHIFT / X   claw",
-                    "A D / LEFT RIGHT   steer", "P / ESC   pause      F1   debug"]
+        controls = ["SPACE / W / UP / CLICK   flap", "S / DOWN   swoop dive", "SHIFT / X   claw / peck",
+                    "A D / LEFT RIGHT   steer  (or walk, when landed)", "P / ESC   pause      F11   fullscreen"]
         y = 300
         panel = pygame.Surface((420, 26 * len(controls) + 16), pygame.SRCALPHA)
         panel.fill((*P.CHARCOAL, 150))
@@ -396,7 +423,7 @@ class Game:
         if key == pygame.K_F1:
             self.debug = not self.debug
         elif key == pygame.K_F11:
-            pygame.display.toggle_fullscreen()
+            toggle_fullscreen()
         elif self.scene == "title":
             if key in (pygame.K_SPACE, pygame.K_RETURN):
                 self.new_game()
@@ -422,11 +449,37 @@ SWOOP_KEYS = (pygame.K_DOWN, pygame.K_s)
 CLAW_KEYS = (pygame.K_LSHIFT, pygame.K_RSHIFT, pygame.K_x)
 
 
+def toggle_fullscreen():
+    """Switch modes. SCALED keeps 960x540 crisp: exact 2x at 1080p, 4x at 4K,
+    letterboxed on other aspect ratios."""
+    pygame.display.toggle_fullscreen()
+    full = bool(pygame.display.is_fullscreen())
+    pygame.mouse.set_visible(not full)
+    settings = load_settings()
+    settings["fullscreen"] = full
+    save_settings(settings)
+
+
+def open_window():
+    settings = load_settings()
+    full = settings.get("fullscreen", False)
+    if "--fullscreen" in sys.argv:
+        full = True
+    elif "--windowed" in sys.argv:
+        full = False
+    flags = pygame.SCALED | (pygame.FULLSCREEN if full else pygame.RESIZABLE)
+    try:
+        screen = pygame.display.set_mode((W, H), flags, vsync=1)
+    except pygame.error:
+        screen = pygame.display.set_mode((W, H), flags)
+    pygame.mouse.set_visible(not full)
+    return screen
+
+
 def main():
     pygame.init()
-    flags = pygame.SCALED | pygame.RESIZABLE
-    screen = pygame.display.set_mode((W, H), flags)
     pygame.display.set_caption("Swoopin")
+    screen = open_window()
     game = Game(audio="--mute" not in sys.argv)
     clock = pygame.time.Clock()
     running = True
@@ -437,6 +490,8 @@ def main():
         for ev in pygame.event.get():
             if ev.type == pygame.QUIT:
                 running = False
+            elif ev.type == pygame.KEYDOWN and ev.key == pygame.K_RETURN and ev.mod & pygame.KMOD_ALT:
+                toggle_fullscreen()
             elif ev.type == pygame.KEYDOWN:
                 in_play = game.scene == "play" and not game.paused
                 if in_play and ev.key in FLAP_KEYS:

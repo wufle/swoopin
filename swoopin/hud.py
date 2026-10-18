@@ -58,6 +58,18 @@ class HUD:
             pygame.draw.rect(dst, P.CHARCOAL, (x, y + 14, w + 4, 10))
             col = P.EUCALYPT if m.territory > 0.35 else P.WARATAH
             pygame.draw.rect(dst, col, (x + 2, y + 16, w * m.territory, 6))
+        # dad-o-meter: how close the street is to sending out an angry dad
+        rage = g.spawner.dad_rage
+        if rage > 0.05 or any(th.kind == "dad" for th in g.threats):
+            x, y = 16, 100 if (m.territory < 1.0 or m.outside) else 70
+            dst.blit(tc.get("DAD-O-METER", 12, P.BONE, P.CHARCOAL, 2, False), (x - 4, y - 6))
+            n = T.DAD_RAGE_THRESHOLD
+            for i in range(n):
+                fill = min(1.0, max(0.0, rage - i))
+                r = pygame.Rect(x + i * 22, y + 14, 18, 10)
+                pygame.draw.rect(dst, P.CHARCOAL, r)
+                if fill > 0:
+                    pygame.draw.rect(dst, P.WARATAH, (r.x + 2, r.y + 2, (r.w - 4) * fill, r.h - 4))
         # eggs
         cx = W // 2
         for i in range(T.MAX_EGGS):
@@ -92,7 +104,7 @@ class HUD:
         cx, cy = g.cam
         pad = 26
         for th in g.threats:
-            if th.state in ("gone", "flee", "flee_win", "ko", "falling"):
+            if th.state in ("gone", "flee", "flee_win", "ko", "falling", "stroll") or th.innocent:
                 continue
             x, y = th.center()
             sx, sy = x - cx, y - cy
@@ -144,7 +156,7 @@ class HUD:
         lines = [
             f"d={s.d:.3f}  phase={T.PHASES[s.phase][1]}  t={g.clock:.1f}",
             f"active={s.active()}/{s.max_active()}  interval={s.interval():.2f}s  dirs={','.join(s.dirs)}",
-            f"returns queued={len(s.returns)}  fps={g.fps:.0f}",
+            f"returns queued={len(s.returns)}  dad rage={s.dad_rage:.2f}  fps={g.fps:.0f}",
             "alive: " + "  ".join(f"{k}:{v}" for k, v in sorted(counts.items())),
             "spawned: " + "  ".join(f"{k}:{v}" for k, v in s.spawned.items() if v),
         ]

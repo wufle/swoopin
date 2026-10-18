@@ -51,6 +51,10 @@ class Spawner:
         self.phase = 0
         self.goanna_forced = False
         self.spawned = {k: 0 for k in POOL}
+        self.spawned.update(innocent=0, dad=0)
+        self.innocent_t = 2.5
+        self.dad_rage = 0.0
+        self.dad_side = 1
         self.pick_dirs()
 
     @property
@@ -94,6 +98,8 @@ class Spawner:
             self.phase = p
             g.banner(T.PHASES[p][1], sub=True)
 
+        self.update_ambient(dt)
+
         if self.breather:
             if self.wave_t >= T.BREATHER:
                 self.breather = False
@@ -127,8 +133,36 @@ class Spawner:
             if self.active() < self.max_active():
                 self.spawn_event()
 
+    def update_ambient(self, dt):
+        """Innocent kids wandering past, and the dads who come looking for them."""
+        g = self.game
+        self.innocent_t -= dt
+        if self.innocent_t <= 0:
+            self.innocent_t = lerp(T.INNOCENT_INTERVAL_START, T.INNOCENT_INTERVAL_END, self.d) * random.uniform(0.6, 1.4)
+            strolling = sum(1 for th in g.threats if th.innocent and th.state == "stroll")
+            if strolling < T.INNOCENT_MAX:
+                side = random.choice((-1, 1))
+                if random.random() < T.INNOCENT_BIKE_CHANCE:
+                    th = TH.BikeKid(g, side, innocent=True)
+                else:
+                    th = TH.Kid(g, side, innocent=True)
+                g.threats.append(th)
+                self.spawned["innocent"] += 1
+        self.dad_rage = max(0.0, self.dad_rage - T.DAD_RAGE_DECAY * dt)
+        if self.dad_rage >= T.DAD_RAGE_THRESHOLD and self.count_alive("dad") < T.DAD_MAX:
+            self.dad_rage = 0.0
+            g.threats.append(TH.Dad(g, self.dad_side))
+            self.spawned["dad"] += 1
+            g.banner("ANGRY DAD!", sub=True)
+
+    def kid_hit(self, th):
+        # innocents are what really sets the dads off; nest-raiding brats had it coming
+        self.dad_rage += 1.0 if th.innocent else T.DAD_RAGE_BRAT
+        self.dad_side = th.side  # dad comes from the way the kid came
+
     def active(self):
-        return sum(1 for th in self.game.threats if th.state not in ("flee", "flee_win", "gone"))
+        return sum(1 for th in self.game.threats
+                   if th.state not in ("flee", "flee_win", "gone") and not th.innocent and th.kind != "dad")
 
     def spawn_event(self):
         direction = random.choice(self.dirs)
@@ -182,6 +216,7 @@ class Spawner:
             th = TH.Postie(g, side)
         elif kind == "crow":
             th = TH.Crow(g, side, entry or random.choice(["top", "high_side", None]), decoy)
+            g.audio.play("caaaw", 0.7, min_gap=4.0)
         elif kind == "butcherbird":
             th = TH.Butcherbird(g, side, entry or random.choice(["top", "high_side"]))
         elif kind == "djiti":
@@ -201,7 +236,7 @@ class Spawner:
     def queue_return(self, th):
         """A threat that was driven off may come back later."""
         d = self.d
-        if th.succeeded:
+        if th.succeeded or th.innocent or th.kind == "dad":
             return
         if random.random() < lerp(T.RETURN_CHANCE_START, T.RETURN_CHANCE_END, d):
             delay = lerp(T.RETURN_DELAY_START, T.RETURN_DELAY_END, d) * random.uniform(0.8, 1.2)

@@ -10,7 +10,7 @@ from . import palette as P
 from . import tuning as T
 
 BEAK_TIP = (36, -4)  # local offset of the beak tip from the sprite anchor
-REST_Y = T.GROUND_Y - 12
+REST_Y = T.GROUND_Y - 24  # anchor height when standing: feet on the footpath
 
 
 @dataclass
@@ -45,6 +45,8 @@ class Magpie:
         self.outside = False
         self.pulled = False
         self.trail = []
+        self.walk = 0.0
+        self.walking = False
         self.t = 0.0
 
     # -- geometry ---------------------------------------------------------
@@ -62,6 +64,8 @@ class Magpie:
         return self.pos[0] + ox, self.pos[1] + oy
 
     def claw_center(self):
+        if self.grounded:  # on foot: slash at shin height
+            return self.pos[0] + self.facing * (T.CLAW_REACH + 4), self.pos[1] - 2
         return self.pos[0] + self.facing * T.CLAW_REACH, self.pos[1] + 8
 
     # -- control ----------------------------------------------------------
@@ -74,11 +78,11 @@ class Magpie:
         self.vel[0] *= 0.45
         self.flap_anim = 0.25
 
-    def hurt(self, from_x):
+    def hurt(self, from_x, stun=None):
         if self.invuln > 0 or self.state == "stun":
             return False
         self.state = "stun"
-        self.stun_t = T.HIT_STUN_TIME
+        self.stun_t = stun or T.HIT_STUN_TIME
         self.invuln = T.INVULN_TIME
         self.vel[0] = 160 if self.pos[0] > from_x else -160
         self.vel[1] = -120
@@ -97,7 +101,22 @@ class Magpie:
             if self.stun_t <= 0:
                 self.state = "fly"
         else:
-            if ctl.left and not ctl.right:
+            self.walking = False
+            if self.grounded:
+                # on the ground the magpie strolls about on two legs
+                if ctl.left and not ctl.right:
+                    self.facing = -1
+                    self.vel[0] = -T.WALK_SPEED
+                    self.walking = True
+                elif ctl.right and not ctl.left:
+                    self.facing = 1
+                    self.vel[0] = T.WALK_SPEED
+                    self.walking = True
+                else:
+                    self.vel[0] = 0.0
+                if self.walking:
+                    self.walk += dt * 13
+            elif ctl.left and not ctl.right:
                 self.facing = -1
                 self.vel[0] -= T.H_ACCEL * dt
             elif ctl.right and not ctl.left:
@@ -136,8 +155,10 @@ class Magpie:
             cap = T.SWOOP_VX * 1.1
         else:
             self.vel[1] = min(T.MAX_FALL, self.vel[1] + T.GRAVITY * dt)
-            if not (ctl.left or ctl.right) or self.state == "stun":
+            if (not (ctl.left or ctl.right) or self.state == "stun") and not self.grounded:
                 self.vel[0] *= max(0.0, 1 - T.H_DRAG * dt)
+            elif self.grounded and self.state == "stun":
+                self.vel[0] *= max(0.0, 1 - 8 * dt)
 
         # territory leash
         dx = self.pos[0] - T.NEST_X
@@ -174,14 +195,20 @@ class Magpie:
             self.pos[1] = 16
             self.vel[1] = max(self.vel[1], 0)
 
-        # ground: a hard landing is a stumble
+        # ground: diving into it or dropping like a stone is a stumble,
+        # anything gentler and the magpie lands on its feet
         if self.pos[1] >= REST_Y:
             self.pos[1] = REST_Y
-            if not self.grounded and self.state != "stun" and (self.vel[1] > 140 or self.state == "swoop"):
-                self.state = "stun"
-                self.stun_t = T.STUN_TIME
-                self.vel[0] *= 0.3
-                events.append("stumble")
+            if not self.grounded:
+                if self.state != "stun" and (self.state == "swoop" or self.vel[1] > T.HARD_LANDING):
+                    self.state = "stun"
+                    self.stun_t = T.STUN_TIME
+                    self.vel[0] *= 0.3
+                    events.append("stumble")
+                else:
+                    events.append("landed")
+                    if self.state == "swoop":
+                        self.state = "fly"
             self.vel[1] = 0
             self.grounded = True
         elif self.vel[1] < 0:
@@ -208,9 +235,12 @@ class Magpie:
                              (x - cx - self.facing * 50 * k, y - cy + 6), 2)
         blink = self.invuln > 0 and int(self.t * 16) % 2 == 0
         flap = self.flap_phase if not self.grounded else 1.2
+        bob = 0.0
+        if self.grounded and self.walking:
+            bob = abs(math.sin(self.walk)) * 2
         surf, anchor = art.draw_magpie(flap, tucked=self.state == "swoop", stunned=self.state == "stun",
-                                       flash=blink)
-        art.blit_actor(dst, surf, anchor, (self.pos[0] - cx, self.pos[1] - cy), self.facing, self.angle,
+                                       flash=blink, standing=self.grounded, walk=self.walk)
+        art.blit_actor(dst, surf, anchor, (self.pos[0] - cx, self.pos[1] - cy - bob), self.facing, self.angle,
                        140 if blink else 255)
         if self.claw_t > 0:
             k = 1 - self.claw_t / T.CLAW_ACTIVE

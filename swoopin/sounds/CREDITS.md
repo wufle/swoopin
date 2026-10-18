@@ -17,7 +17,6 @@ recordists.
 | `fart0.ogg` | [little parp.wav](https://freesound.org/s/26793/) (Freesound #26793) | Walter_Odington | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `fart1.ogg` | [Short, definite fart](https://freesound.org/s/249583/) (Freesound #249583) | ycbcr | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `splat.ogg` | [splat11.wav](https://freesound.org/s/460876/) (Freesound #460876) | moshang | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
-| `eew0.ogg` | [Ewww!](https://freesound.org/s/776024/) (Freesound #776024) | 9voltfan | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `meow0.ogg` | [Begging Meow](https://freesound.org/s/732521/) (Freesound #732521) | Lukey1028 | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `meow1.ogg` | [cat meow](https://freesound.org/s/110011/) (Freesound #110011) | tuberatanka | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `bang2.ogg` | [Punch #2.mp3](https://freesound.org/s/162369/) (Freesound #162369) | lewisisminted | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
@@ -52,3 +51,4 @@ Voiced by wufle with `python -m swoopin.record`, and released along with the gam
 | `mum*.ogg` | a kid yelling for mum |
 | `oi*.ogg` | the angry dad arriving |
 | `shoo*.ogg` | a mum shooing the magpie |
+| `eew*.ogg` | a kid who has just been pooped on |

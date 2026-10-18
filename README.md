@@ -14,7 +14,19 @@ you a cheeky bonus and sends them screaming for mum. Hit too many and an
 Survive the full 10-minute swooping season (Aug → Nov) and the chicks fledge.
 Lose every egg and the nest is raided.
 
-## Setup
+## Download
+
+Ready-to-play builds for Windows, macOS (Apple Silicon) and Linux are on the
+[Releases page](https://github.com/wufle/swoopin/releases). Unzip and run;
+no Python needed.
+
+- **Windows:** SmartScreen may warn about an unrecognised app. Click "More
+  info", then "Run anyway".
+- **macOS:** the app isn't signed. Right-click Swoopin.app, choose Open, then
+  Open again (only needed the first time).
+- **Linux:** `tar xzf swoopin-linux-x86_64.tar.gz && ./swoopin`
+
+## Run from source
 
 ```sh
 python3 -m venv .venv
@@ -22,7 +34,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Run
+Then:
 
 ```sh
 python -m swoopin               # --mute for no sound
@@ -126,3 +138,14 @@ swoopin/
   audio.py     sound playback (recordings + a few synth blips)
   sounds/      the recordings, with CREDITS.md
 ```
+
+## Building executables
+
+```sh
+pip install pyinstaller
+pyinstaller packaging/swoopin.spec   # -> dist/
+./dist/swoopin --selftest            # headless check: plays 20 s, reports sounds loaded
+```
+
+Publishing a GitHub release builds and attaches Windows, macOS and Linux
+versions automatically (`.github/workflows/build-executables.yml`).

@@ -1,0 +1,62 @@
+name: Build executables
+
+# Builds Windows, macOS and Linux versions of the game, checks each one with
+# --selftest, and attaches them to the release.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to attach the builds to (e.g. v0.1.0)
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            asset: swoopin-linux-x86_64.tar.gz
+          - os: windows-latest
+            asset: swoopin-windows-x86_64.zip
+          - os: macos-14
+            asset: swoopin-macos-apple-silicon.zip
+    runs-on: ${{ matrix.os }}
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -r requirements.txt pyinstaller
+      - name: Build
+        run: pyinstaller --noconfirm packaging/swoopin.spec
+      - name: Self-test the build
+        shell: bash
+        run: |
+          case "$RUNNER_OS" in
+            macOS)   ./dist/Swoopin.app/Contents/MacOS/Swoopin --selftest ;;
+            Windows) ./dist/Swoopin.exe --selftest ;;
+            *)       ./dist/swoopin --selftest ;;
+          esac
+      - name: Package
+        shell: bash
+        run: |
+          cd dist
+          case "$RUNNER_OS" in
+            macOS)   ditto -c -k --keepParent Swoopin.app "../${{ matrix.asset }}" ;;
+            Windows) 7z a "../${{ matrix.asset }}" Swoopin.exe ;;
+            *)       tar czf "../${{ matrix.asset }}" swoopin ;;
+          esac
+      - name: Attach to the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" "${{ matrix.asset }}" --clobber -R "$GITHUB_REPOSITORY"

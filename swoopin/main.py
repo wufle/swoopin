@@ -518,7 +518,30 @@ def open_window():
     return screen
 
 
+def selftest():
+    """Headless smoke test used to check packaged builds: plays 20 seconds and
+    reports what loaded. Exits non-zero on failure."""
+    os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+    os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
+    pygame.init()
+    screen = pygame.display.set_mode((W, H))
+    game = Game(audio=True)
+    game.new_game()
+    for f in range(T.FPS * 20):
+        game.update(1 / T.FPS, Controls(flap=f % 20 == 0, swoop=f % 90 == 45, poop=f % 120 == 60))
+        if f % 30 == 0:
+            game.draw(screen)
+    n = sum(len(v) for v in game.audio.sounds.values())
+    ok = game.audio.ok and n > 20 and game.scene in ("play", "over")
+    print(f"swoopin selftest: {'ok' if ok else 'FAILED'}  sounds={n}  threats={len(game.threats)}  "
+          f"t={game.clock:.0f}s  score={game.score}")
+    pygame.quit()
+    sys.exit(0 if ok else 1)
+
+
 def main():
+    if "--selftest" in sys.argv:
+        selftest()
     pygame.init()
     pygame.display.set_caption("Swoopin")
     screen = open_window()

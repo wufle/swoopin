@@ -587,24 +587,46 @@ class Mum(Walker):
     def shoulder(self):
         return self.pos[0] + self.facing * 6, self.pos[1] - 68
 
-    def broom_angle(self):
-        """Screen-space angle of the broom: resting up over her shoulder, then a
-        big overhead swing toward the magpie."""
-        rest = -math.pi / 2 - self.facing * 0.5
+    def broom_pose(self):
+        """(grip point, angle) of the broom in world space. The angle points from
+        her top hand toward the bristles.
+
+        At rest she holds it like she's mid-sweep: bristles down by her feet.
+        A shoo is three beats: hoist it overhead with the bristles cocked back,
+        bring it down hard toward the magpie, then settle back to sweeping."""
+        x, y, f = self.pos[0], self.pos[1], self.facing
+        rest = ((x + f * 13, y - 58), math.pi / 2 - f * 0.32)
         if self.swing_t <= 0:
             return rest
         k = 1 - self.swing_t / T.MUM_SWING_TIME
+        over = ((x + f * 3, y - 96), -math.pi / 2 - f * 0.75)
         m = self.game.magpie
-        sx, sy = self.shoulder()
-        target = math.atan2(m.pos[1] - sy, m.pos[0] - sx)
-        arc = math.sin(k * math.pi)  # out and back
-        diff = (target - rest + math.pi) % math.tau - math.pi
-        return rest + diff * arc
+        sg = (x + f * 20, y - 74)
+        target = math.atan2(m.pos[1] - sg[1], m.pos[0] - sg[0])
+        if math.cos(target) * f < 0.2:  # always strike out in front of her
+            target = math.atan2(-0.8, f * 0.6)
+        strike = (sg, target)
+
+        def blend(a, b, t, via_front=False):
+            t = t * t * (3 - 2 * t)  # smoothstep
+            (ax, ay), aa = a
+            (bx, by), ba = b
+            da = (ba - aa + math.pi) % math.tau - math.pi
+            if via_front and da * f > 0:
+                # rotate the long way round so the broom comes up in front of
+                # her, not back through her head
+                da -= math.copysign(math.tau, da)
+            return (ax + (bx - ax) * t, ay + (by - ay) * t), aa + da * t
+
+        if k < 0.3:
+            return blend(rest, over, k / 0.3, via_front=True)
+        if k < 0.55:
+            return blend(over, strike, (k - 0.3) / 0.25)
+        return blend(strike, rest, (k - 0.55) / 0.45)
 
     def broom_head(self):
-        sx, sy = self.shoulder()
-        a = self.broom_angle()
-        return sx + math.cos(a) * T.MUM_BROOM_REACH, sy + math.sin(a) * T.MUM_BROOM_REACH
+        (gx, gy), a = self.broom_pose()
+        return gx + math.cos(a) * T.MUM_BROOM_REACH, gy + math.sin(a) * T.MUM_BROOM_REACH
 
     def shoo(self, dt):
         g = self.game
@@ -613,7 +635,7 @@ class Mum(Walker):
         if self.swing_t > 0:
             self.swing_t -= dt
             k = 1 - self.swing_t / T.MUM_SWING_TIME
-            if not self.whacked and 0.35 < k < 0.7:
+            if not self.whacked and 0.42 < k < 0.72:
                 bx, by = self.broom_head()
                 if math.hypot(m.pos[0] - bx, m.pos[1] - by) < T.MUM_WHACK_RADIUS:
                     self.whacked = True
@@ -673,19 +695,47 @@ class Mum(Walker):
         ko = self.state == "ko"
         p = (self.pos[0] - cam[0], self.pos[1] - cam[1])
         moving = self.state in ("rescue", "leave", "stroll", "flee")
-        surf, anchor = art.draw_mum(self.anim if moving else 0, ko=ko, cross=self.swing_t > 0)
+        broom, banchor = art.draw_broom()
+        if ko:  # dropped it
+            art.blit_actor(dst, broom, banchor, (p[0] + self.facing * 26, p[1] - 3), self.facing, 0)
+        surf, anchor = art.draw_mum(self.anim if moving else 0, ko=ko, cross=self.swing_t > 0, arms=ko)
         art.blit_actor(dst, surf, anchor, (p[0], p[1] - (8 if ko else 0)), self.facing, self.angle)
         if self.pooped and not ko:
             draw_head_poop(dst, self, cam)
         if ko:
             return
-        sx, sy = self.shoulder()
-        broom, banchor = art.draw_broom()
-        a = self.broom_angle()
-        if math.cos(a) >= 0:
-            art.blit_actor(dst, broom, banchor, (sx - cam[0], sy - cam[1]), 1, -math.degrees(a))
-        else:
-            art.blit_actor(dst, broom, banchor, (sx - cam[0], sy - cam[1]), -1, -math.degrees(a) - 180)
+        (gx, gy), a = self.broom_pose()
+        ca, sa = math.cos(a), math.sin(a)
+        f = self.facing
+        back_sh = (self.pos[0] - f * 5 - cam[0], self.pos[1] - 72 - cam[1])
+        front_sh = (self.pos[0] + f * 4 - cam[0], self.pos[1] - 71 - cam[1])
+        top = (gx - cam[0], gy - cam[1])
+        low = (top[0] + ca * 13, top[1] + sa * 13)
+        self._arm(dst, back_sh, top)  # back arm behind the handle
+        g = (gx - cam[0], gy - cam[1])
+        if ca >= 0:
+            art.blit_actor(dst, broom, banchor, g, 1, -math.degrees(a))
+        else:  # flip so the bristles stay the right way round
+            art.blit_actor(dst, broom, banchor, g, -1, -math.degrees(a) - 180)
+        self._arm(dst, front_sh, low)  # front arm over it
+        for hand in (top, low):
+            art.ocircle(dst, P.SKIN, (round(hand[0]), round(hand[1])), 3, 1)
+
+    @staticmethod
+    def _arm(dst, shoulder, hand):
+        """Upper arm + forearm with the elbow bent outward/down a touch."""
+        sx, sy = shoulder
+        hx, hy = hand
+        dx, dy = hx - sx, hy - sy
+        d = math.hypot(dx, dy) or 1
+        reach = 34  # full arm length
+        bend = math.sqrt(max(0.0, (reach / 2) ** 2 - (min(d, reach) / 2) ** 2))
+        nx, ny = -dy / d, dx / d
+        if ny < 0:  # elbows bend down, not up
+            nx, ny = -nx, -ny
+        elbow = (sx + dx / 2 + nx * bend, sy + dy / 2 + ny * bend)
+        art.oline(dst, P.SKIN, shoulder, elbow, 4)
+        art.oline(dst, P.SKIN, elbow, hand, 4)
 
 
 # --------------------------------------------------------------------------

@@ -217,30 +217,83 @@ class Level:
         # roots
         for d in (-1, 1):
             art.opoly(s, P.GHOST_GUM, [(NX + d * 18, GY - 10), (NX + d * 40, GY + 4), (NX + d * 14, GY + 4)], 2)
-        # limbs up into the canopy
-        for (x0, y0), (x1, y1), w in (((NX - 6, NY + 8), (NX - 100, 160), 10), ((NX + 6, NY + 8), (NX + 105, 155), 10),
-                                      ((NX, NY), (NX - 15, 120), 9), ((NX - 55, 194), (NX - 135, 175), 6),
-                                      ((NX + 60, 190), (NX + 140, 180), 6)):
-            art.oline(s, P.GHOST_GUM, (x0, y0), (x1, y1), w)
+        # limbs fork out from the nest and every branch ends in foliage
+        self.branch_tips = []
+        fork = (NX, NY + 6)
+        mains = [((NX - 160, 132), 12, 5, 34), ((NX + 12, 88), 11, 4, -14), ((NX + 166, 128), 12, 5, -36)]
+        subs = []
+        for end, w0, w1, bend in mains:
+            pts = self._limb(s, fork, end, w0, w1, bend)
+            self.branch_tips.append(end)
+            # two side branches peel off each main limb
+            for frac, out, up in ((0.5, 1, -1), (0.7, -1, -1)):
+                start = pts[int(frac * (len(pts) - 1))]
+                dx = end[0] - fork[0]
+                side = 1 if dx >= 0 else -1
+                tip = (start[0] + side * out * rnd.randint(35, 60) + (rnd.randint(-15, 15) if dx == 0 else 0),
+                       start[1] + up * rnd.randint(40, 62))
+                subs.append((start, tip))
+        for start, tip in subs:
+            self._limb(s, start, tip, 5, 2, rnd.randint(-12, 12))
+            self.branch_tips.append(tip)
+
+    def _limb(self, s, a, b, w0, w1, bend):
+        """A tapering, gently curved ghost-gum limb. Returns its centre line."""
+        mx, my = (a[0] + b[0]) / 2, (a[1] + b[1]) / 2
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        d = math.hypot(dx, dy) or 1
+        cx, cy = mx - dy / d * bend, my + dx / d * bend  # bezier control point
+        line, left, right = [], [], []
+        n = 14
+        for i in range(n + 1):
+            t = i / n
+            x = (1 - t) ** 2 * a[0] + 2 * (1 - t) * t * cx + t * t * b[0]
+            y = (1 - t) ** 2 * a[1] + 2 * (1 - t) * t * cy + t * t * b[1]
+            tx = 2 * (1 - t) * (cx - a[0]) + 2 * t * (b[0] - cx)
+            ty = 2 * (1 - t) * (cy - a[1]) + 2 * t * (b[1] - cy)
+            tl = math.hypot(tx, ty) or 1
+            w = (w0 + (w1 - w0) * t) / 2
+            line.append((x, y))
+            left.append((x - ty / tl * w, y + tx / tl * w))
+            right.append((x + ty / tl * w, y - tx / tl * w))
+        art.opoly(s, P.GHOST_GUM, left + right[::-1], 2)
+        # a few grey bark patches
+        for i in range(2, n - 2, 4):
+            x, y = line[i]
+            pygame.draw.ellipse(s, P.BARK_SHADE, (x - 2, y - 1, 5, 3))
+        return line
 
     def _canopy(self, rnd):
+        """Open, clumpy eucalypt foliage: a cluster of leaves around every branch
+        tip, so no limb ends in mid-air and sky shows between the clumps."""
         s = pygame.Surface((T.WORLD_W, H), pygame.SRCALPHA)
         blobs = []
-        for _ in range(26):
-            blobs.append((NX + rnd.randint(-210, 210), rnd.randint(80, 190), rnd.randint(26, 46)))
-        for x, y, r in blobs:
-            pygame.draw.circle(s, P.DEEP_GUM, (x, y + 6), r + 3)
+        for tx, ty in self.branch_tips:
+            for _ in range(rnd.randint(5, 7)):
+                r = rnd.randint(19, 32)
+                blobs.append((tx + rnd.randint(-34, 34), ty + rnd.randint(-30, 8), r))
+            # crown on top of each clump, so the canopy has some height
+            blobs.append((tx + rnd.randint(-12, 12), ty - rnd.randint(32, 46), rnd.randint(20, 28)))
+        # a few filler clumps between neighbouring tips keep it full but not solid
+        tips = sorted(self.branch_tips)
+        for (ax, ay), (bx, by) in zip(tips, tips[1:]):
+            if math.hypot(bx - ax, by - ay) < 150:
+                blobs.append(((ax + bx) / 2 + rnd.randint(-10, 10), (ay + by) / 2 - rnd.randint(5, 20),
+                              rnd.randint(18, 26)))
+        for x, y, r in blobs:  # shaded underside
+            pygame.draw.circle(s, P.DEEP_GUM, (x, y + 5), r + 2)
         for x, y, r in blobs:
             pygame.draw.circle(s, P.EUCALYPT, (x, y), r)
-        # leaf texture and wattle flecks, kept inside the foliage
-        for _ in range(70):
+        # drooping gum leaves and a little cream blossom, kept inside the clumps
+        for _ in range(110):
             bx, by, br = rnd.choice(blobs)
             a = rnd.uniform(0, math.tau)
-            rr = rnd.uniform(0, br - 8)
-            pygame.draw.ellipse(s, P.DEEP_GUM, (bx + math.cos(a) * rr - 5, by + math.sin(a) * rr - 2, 10, 4))
-        for _ in range(18):
+            rr = rnd.uniform(0, br - 6)
+            lx, ly = bx + math.cos(a) * rr, by + math.sin(a) * rr
+            pygame.draw.line(s, P.DEEP_GUM, (lx - 3, ly - 2), (lx + 3, ly + 3), 2)
+        for _ in range(14):
             bx, by, br = rnd.choice(blobs)
-            pygame.draw.circle(s, P.WATTLE, (bx + rnd.randint(-br // 2, br // 2), by + rnd.randint(-br // 2, br // 2)), 2)
+            pygame.draw.circle(s, P.BONE, (bx + rnd.randint(-br // 2, br // 2), by + rnd.randint(-br // 2, br // 2)), 2)
         return s
 
     def _ring(self):

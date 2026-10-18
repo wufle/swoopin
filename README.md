@@ -18,7 +18,9 @@ Lose every egg and the nest is raided.
 
 **[▶ Play it in your browser](https://wufle.github.io/swoopin/)** (keyboard needed;
 click the page once to start, which lets the browser play sound), or
-[download it](#download) for Windows, macOS or Linux.
+[download it](#download) for Windows, macOS or Linux. The download plays a
+little better: it starts instantly, runs more smoothly, handles sound more
+reliably, and lets you use Ctrl to poop and switch fullscreen in game.
 
 ## Screenshots
 

@@ -307,3 +307,7 @@ swoopin/
   claw and poop on the right, plus mate and pause. Any tap on the empty right
   half flaps. On-screen prompts switch to "TAP", and a portrait phone gets a
   "turn your phone sideways" message.
+- **Fullscreen on phones.** The web page asks for fullscreen and landscape on
+  the first touch (Android Chrome allows it straight after a tap), and ships
+  an app manifest so "Add to Home screen" launches it fullscreen, landscape,
+  with a magpie icon.

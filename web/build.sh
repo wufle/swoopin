@@ -13,4 +13,16 @@ python web/render_blips.py build/stage/swoopin/swoopin/sounds
 cp web/favicon.png build/stage/swoopin/favicon.png
 python -m pygbag --build --app_name swoopin --title Swoopin --width 960 --height 540 --icon web/favicon.png build/stage/swoopin
 rm -rf build/web && mv build/stage/swoopin/build/web build/web
+# phone extras: fullscreen on first tap, and an app manifest for "Add to Home screen"
+cp web/fullscreen.js web/manifest.webmanifest web/icon-192.png web/icon-512.png build/web/
+python - <<'PY'
+from pathlib import Path
+p = Path("build/web/index.html")
+s = p.read_text()
+s = s.replace("</head>", '    <link rel="manifest" href="manifest.webmanifest">\n'
+              '    <link rel="apple-touch-icon" href="icon-192.png">\n'
+              '    <meta name="theme-color" content="#1e1e1e">\n</head>', 1)
+s = s.replace("</body>", '<script src="fullscreen.js"></script>\n</body>', 1)
+p.write_text(s)
+PY
 echo "Built build/web/"

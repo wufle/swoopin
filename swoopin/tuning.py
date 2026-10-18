@@ -84,6 +84,7 @@ THREATS = {
     "cat": dict(hp=1, speed=70, score=20, attack_time=1.2),
     "goanna": dict(hp=3, speed=32, score=40, attack_time=1.6),
     "dad": dict(hp=3, speed=70, score=60, attack_time=99),
+    "mum": dict(hp=2, speed=60, score=20, attack_time=99),
 }
 
 # Innocent kids just walking past: scared of the magpie, but cheeky bonus
@@ -98,6 +99,21 @@ KID_FLEE_MULT = 2.4  # kids bolt for home once they've been swooped (x their wal
 DAD_RAGE_THRESHOLD = 4  # kids knocked out (roughly) before a dad turns up
 DAD_RAGE_DECAY = 1 / 30  # rage points forgiven per second
 DAD_RAGE_BRAT = 0.3  # a nest-raiding brat only counts this much
+DAD_RAGE_MUM = 1.5  # knocking out someone's mum really sets them off
+
+# Mums: come running to a knocked-out kid, or walk along with one. Say "SHOO!"
+# and swing a broom at the magpie if it comes close.
+MUM_RESCUE_CHANCE = 0.4
+MUM_ESCORT_CHANCE = 0.15
+MUM_MAX = 2
+MUM_COOLDOWN = 12.0  # seconds between mums turning up
+MUM_RUN_SPEED = 200
+MUM_SHOO_RANGE = 190
+MUM_SHOO_COOLDOWN = 1.8
+MUM_SWING_TIME = 0.45
+MUM_BROOM_REACH = 58  # broom head distance from her shoulder
+MUM_WHACK_RADIUS = 34
+MUM_WHACK_STUN = 0.5
 DAD_MAX = 2
 DAD_SHOTS = 3
 DAD_AIM_START = 1.7  # seconds of visible aiming before the shot

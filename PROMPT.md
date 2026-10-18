@@ -278,3 +278,11 @@ swoopin/
   back, perfect waves, hats, time guarding the nest, times shot) and a
   knockout tally with a sprite icon per attacker type, revealed row by row.
 - **Kids bolt for home** at 2.4x walking speed once they've been swooped.
+- **Mums:** sometimes a mum runs to a knocked-out innocent kid (the kid stays
+  down until she arrives, then she guards them and they get up), or walks
+  along with one. She yells "SHOO!" and swings a broom at a magpie that comes
+  close, which stuns it briefly. She takes 2 hits, counts as an innocent
+  (cheeky bonus), and adds 1.5 to the DAD-O-METER.
+- **Record your own sounds:** `python -m swoopin.record <name>` records from
+  the default mic, trims, levels and saves a numbered variant. The dad plays
+  `threat` as he starts aiming, and the mum plays `shoo`.

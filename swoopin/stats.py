@@ -22,6 +22,7 @@ KO_ROWS = [
     ("cat", "Cats"),
     ("goanna", "Goannas"),
     ("dad", "Angry dads"),
+    ("mum", "Mums"),
 ]
 
 
@@ -91,6 +92,8 @@ def icon(key, box=(40, 34)):
         s, _ = art.draw_goanna(1.0)
     elif key == "dad":
         s, _ = art.draw_dad(0.0)
+    elif key == "mum":
+        s, _ = art.draw_mum(0.0)
     else:
         s = pygame.Surface((1, 1), pygame.SRCALPHA)
     r = s.get_bounding_rect()
@@ -158,6 +161,7 @@ def draw(dst, g, t):
         ("Perfect waves", f"{st.perfect_waves}"),
         ("Hats nicked", f"{g.level.trophy_hats}"),
         ("Time guarding the nest", f"{pm}:{ps:02d}"),
+        ("Angry dads / mums sent", f"{g.spawner.spawned.get('dad', 0)} / {g.spawner.spawned.get('mum', 0)}"),
         ("Shot by dads", f"{st.times_shot}"),
     ]
     header(dst, tc, "YOUR SEASON", 60, top + 10)
@@ -168,7 +172,7 @@ def draw(dst, g, t):
         dst.blit(tc.get(label, 15, P.BONE, P.CHARCOAL, 1, False), (60, y))
         v = tc.get(value, 15, P.WATTLE, P.CHARCOAL, 1, False)
         dst.blit(v, (440 - v.get_width(), y))
-        y += 24
+        y += 22
 
     # right: knockouts
     total = sum(st.kos.values())
@@ -178,7 +182,7 @@ def draw(dst, g, t):
             break
         col, row = i % 2, i // 2
         x = 520 + col * 200
-        y = top + 46 + row * 52
+        y = top + 42 + row * 45
         n = st.kos.get(key, 0)
         ic = icon(key)
         ic = ic if n else _dim(ic)
@@ -186,11 +190,6 @@ def draw(dst, g, t):
         fill = P.BONE if n else P.GREY
         dst.blit(tc.get(label, 13, fill, P.CHARCOAL, 1, False), (x + 46, y + 2))
         dst.blit(tc.get(f"{n}", 20, P.WATTLE if n else P.GREY, P.CHARCOAL, 2), (x + 46, y + 16))
-    if st.kos.get("innocent"):
-        note = tc.get(f"cheeky! the street sent {g.spawner.spawned.get('dad', 0)} angry dad(s)", 12,
-                      P.BONE, P.CHARCOAL, 1, True)
-        if t > 2.0:
-            dst.blit(note, (520, top + 318 - 22))
 
     if t > 1.5:
         img = tc.get("SPACE  play again        ESC  title", 18, P.BONE, P.CHARCOAL, 2)

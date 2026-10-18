@@ -352,6 +352,53 @@ def draw_dad(walk, ko=False):
     return s, (fx, fy)
 
 
+def draw_mum(walk, ko=False, cross=False):
+    """Mum: floral sundress, hair in a bun, sunnies pushed up on her head."""
+    s = _surf(80, 106)
+    fx, fy = 40, 102
+    sw = math.sin(walk) * 7
+    for side, ph in ((-5, sw), (5, -sw)):
+        oline(s, P.SKIN, (fx + side, fy - 30), (fx + side + ph, fy - 4), 5)
+        pygame.draw.ellipse(s, P.TAN, (fx + side + ph - 5, fy - 5, 12, 5))
+    # dress with flowers
+    dress = [(fx - 9, fy - 72), (fx + 9, fy - 72), (fx + 19, fy - 28), (fx - 19, fy - 28)]
+    opoly(s, P.WARATAH, dress, 2)
+    for dx, dy in ((-8, -40), (6, -48), (-2, -60), (10, -34), (-12, -32), (2, -36)):
+        pygame.draw.circle(s, P.BONE, (fx + dx, fy + dy), 2)
+        pygame.draw.circle(s, P.WATTLE, (fx + dx, fy + dy), 1)
+    # back arm
+    oline(s, P.SKIN, (fx - 5, fy - 68), (fx - 12, fy - 46), 4)
+    hc = (fx + 3, fy - 80)
+    ocircle(s, P.STRIPE, (hc[0] - 9, hc[1] - 6), 6, 2)  # bun
+    ocircle(s, P.SKIN, hc, 11)
+    pygame.draw.arc(s, P.STRIPE, (hc[0] - 12, hc[1] - 12, 24, 22), math.radians(20), math.radians(200), 6)
+    # sunnies up on her head
+    pygame.draw.line(s, OUT, (hc[0] - 6, hc[1] - 10), (hc[0] + 9, hc[1] - 9), 2)
+    pygame.draw.ellipse(s, OUT, (hc[0] + 2, hc[1] - 13, 7, 5))
+    ex, ey = hc[0] + 5, hc[1] - 1
+    if ko:
+        xeye(s, (ex, ey), 3)
+    else:
+        pygame.draw.circle(s, OUT, (ex, ey), 2)
+        if cross:
+            pygame.draw.line(s, OUT, (ex - 4, ey - 6), (ex + 3, ey - 3), 2)
+            pygame.draw.circle(s, OUT, (hc[0] + 6, hc[1] + 6), 3)  # SHOO!
+        else:
+            pygame.draw.arc(s, OUT, (hc[0] + 1, hc[1] + 2, 8, 6), math.pi * 1.1, math.pi * 1.9, 2)
+    pygame.draw.circle(s, P.WARATAH, (hc[0] + 7, hc[1] + 3), 2)  # lippy
+    return s, (fx, fy)
+
+
+def draw_broom():
+    """Pointing right; anchor at the hand end of the handle."""
+    s = _surf(70, 22)
+    oline(s, P.FENCE, (2, 11), (48, 11), 3)
+    opoly(s, P.WATTLE, [(46, 7), (52, 4), (68, 2), (68, 20), (52, 18), (46, 15)], 2)
+    for y in (6, 10, 14, 18):
+        pygame.draw.line(s, P.OCHRE, (54, y), (67, y), 1)
+    return s, (4, 11)
+
+
 def draw_shotgun():
     """Pointing right; anchor at the shoulder end of the stock. Muzzle 46px out."""
     s = _surf(70, 16)

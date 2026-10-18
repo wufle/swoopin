@@ -59,6 +59,10 @@ aspect ratios.
   aim (a dashed red line that locks just before he fires), and lets fly with a
   shotgun spread. Get out of the line, or swoop him to spoil his aim. He takes
   three hits.
+- Sometimes a **mum** comes running to a knocked-out kid and stands guard,
+  or walks along with one. Come too close and she yells **"SHOO!"** and
+  swings a broom at you. Knocking out a mum gets you a cheeky bonus, but
+  really winds up the dads.
 - Land on the footpath (it never hurts) and you can walk around on two legs and
   peck at shins. Landing ends your combo.
 - **Land in the nest to stand guard.** Drop gently onto it and the magpie
@@ -72,6 +76,23 @@ aspect ratios.
   bullseyes, best combo, eggs lost and rescued, hats nicked, time spent
   guarding the nest, times you got shot, and a knockout tally for every
   attacker type.
+
+## Record your own sounds
+
+Plug in a mic and run:
+
+```sh
+python -m swoopin.record threat     # the dad's line as he takes aim
+python -m swoopin.record shoo       # a mum shooing the magpie
+python -m swoopin.record --list     # every sound name and what it's for
+```
+
+You get a 3-2-1 countdown and then 3 seconds of recording (change it with
+`--seconds 4`). The take is trimmed to where you start talking, levelled,
+saved into `swoopin/sounds/` and played back. Record several takes of the
+same name and the game picks between them at random. `--replace` throws away
+your earlier takes of that name. The game uses `threat` and `shoo` as soon as
+you've recorded them; you can record over any other sound name too.
 
 ## Code layout
 
@@ -92,6 +113,8 @@ swoopin/
   fx.py        comic text bursts, particles, props, screen shake
   level.py     parallax background, gum tree, nest
   hud.py       score, eggs, territory, season calendar, edge arrows
+  stats.py     end-of-game statistics
+  record.py    record your own sounds into the game
   art.py       all sprite drawing
   audio.py     sound playback (recordings + a few synth blips)
   sounds/      the recordings, with CREDITS.md

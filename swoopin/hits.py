@@ -136,12 +136,17 @@ def apply_hit(game, th, kind, zone, point):
             else:
                 audio.play("waah", 0.8, min_gap=0.5)
 
+    if th.kind == "mum" and not was_fleeing:
+        fx.text("HOW DARE YOU!", (hx, hy - 4), "plain", 18, drift=-45)
+        pts += T.INNOCENT_BONUS * mult
+        label = "CHEEKY!"
+
     if ko:
         fx.big_hit()
         audio.play("ko", 0.6)
         pts += th.score * T.KO_BONUS_MULT * mult
         game.wave_kos += 1
-        if th.is_kid:
+        if th.is_kid or th.kind == "mum":
             game.kid_hit(th)
         if th.first_seen is not None and game.clock - th.first_seen <= T.QUICK_KO_WINDOW and not th.innocent:
             pts += T.QUICK_KO_BONUS

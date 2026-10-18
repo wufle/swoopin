@@ -500,6 +500,7 @@ class Dad(Walker):
     def start_aim(self):
         self.state = "aim"
         self.aim_t = lerp(T.DAD_AIM_START, T.DAD_AIM_END, self.game.d)
+        self.game.audio.play("threat", 1.0, min_gap=2.5)  # record your own: python -m swoopin.record threat
 
     def fire(self):
         g = self.game
@@ -553,6 +554,129 @@ class Dad(Walker):
             sx, sy = self.shoulder()
             gun, ganchor = art.draw_shotgun()
             art.blit_actor(dst, gun, ganchor, (sx - cam[0], sy - cam[1] + 6), self.facing, -60 * self.facing)
+
+
+class Mum(Walker):
+    """A mum looking out for the kids. Runs to a knocked-out kid and stands
+    guard (they get up quicker), or walks along with one. Yells "SHOO!" and
+    swings a broom at the magpie when it comes close. She's an innocent too.
+    """
+
+    kind = "mum"
+    ZONES = [("eye", (8, -81), 3.5), ("head", (3, -80), 11), ("body", (0, -48), 20)]
+
+    def __init__(self, game, side, rescue=None, escort=None):
+        super().__init__(game, side, innocent=True)
+        self.rescue = rescue
+        self.shoo_cd = 0.6
+        self.swing_t = 0.0
+        self.whacked = False
+        if rescue is not None:
+            self.state = "rescue"
+        elif escort is not None:
+            self.speed = escort.speed
+            self.pos[0] += side * 46  # a step behind her kid
+
+    def shoulder(self):
+        return self.pos[0] + self.facing * 6, self.pos[1] - 68
+
+    def broom_angle(self):
+        """Screen-space angle of the broom: resting up over her shoulder, then a
+        big overhead swing toward the magpie."""
+        rest = -math.pi / 2 - self.facing * 0.5
+        if self.swing_t <= 0:
+            return rest
+        k = 1 - self.swing_t / T.MUM_SWING_TIME
+        m = self.game.magpie
+        sx, sy = self.shoulder()
+        target = math.atan2(m.pos[1] - sy, m.pos[0] - sx)
+        arc = math.sin(k * math.pi)  # out and back
+        diff = (target - rest + math.pi) % math.tau - math.pi
+        return rest + diff * arc
+
+    def broom_head(self):
+        sx, sy = self.shoulder()
+        a = self.broom_angle()
+        return sx + math.cos(a) * T.MUM_BROOM_REACH, sy + math.sin(a) * T.MUM_BROOM_REACH
+
+    def shoo(self, dt):
+        g = self.game
+        m = g.magpie
+        self.shoo_cd -= dt
+        if self.swing_t > 0:
+            self.swing_t -= dt
+            k = 1 - self.swing_t / T.MUM_SWING_TIME
+            if not self.whacked and 0.35 < k < 0.7:
+                bx, by = self.broom_head()
+                if math.hypot(m.pos[0] - bx, m.pos[1] - by) < T.MUM_WHACK_RADIUS:
+                    self.whacked = True
+                    if m.hurt(self.pos[0], T.MUM_WHACK_STUN):
+                        g.magpie_hurt(self, "WHACK!")
+            return
+        dist = math.hypot(m.pos[0] - self.pos[0], m.pos[1] - (self.pos[1] - 60))
+        if dist < T.MUM_SHOO_RANGE and self.shoo_cd <= 0:
+            self.shoo_cd = T.MUM_SHOO_COOLDOWN
+            self.swing_t = T.MUM_SWING_TIME
+            self.whacked = False
+            self.facing = 1 if m.pos[0] > self.pos[0] else -1
+            hx, hy = self.head_pos()
+            g.fx.text("SHOO!", (hx, hy - 6), "plain", 24, drift=-40)
+            g.audio.play("shoo", 1.0, min_gap=0.8)
+
+    def update(self, dt):
+        if self.state in ("ko", "flee", "flee_win"):
+            self.swing_t = 0.0
+            super().update(dt)
+            return
+        Threat.update(self, dt)
+        g = self.game
+        kid = self.rescue
+        if self.state == "rescue":
+            if kid is None or kid.state != "ko":
+                self.state = "leave"
+            else:
+                dx = kid.pos[0] - self.pos[0]
+                self.facing = 1 if dx > 0 else -1
+                if abs(dx) < 26:
+                    self.state = "guard"
+                    kid.ko_t = min(kid.ko_t, 0.7)  # up you get, love
+                else:
+                    self.anim += dt * 14
+                    self.pos[0] += math.copysign(min(abs(dx), T.MUM_RUN_SPEED * dt), dx)
+        elif self.state == "guard":
+            if kid is None or kid.state != "ko":
+                self.state = "leave"
+        elif self.state == "leave":  # head home the way she came
+            if self.swing_t <= 0:
+                self.facing = self.side
+            self.anim += dt * 10
+            self.pos[0] += self.side * self.speed * 1.4 * dt
+            if self.pos[0] < -120 or self.pos[0] > T.WORLD_W + 120:
+                self.state = "gone"
+        elif self.state == "stroll":
+            if self.swing_t <= 0:
+                self.facing = -self.side
+            self.anim += dt * 10
+            self.pos[0] += -self.side * self.speed * dt
+            if self.pos[0] < -120 or self.pos[0] > T.WORLD_W + 120:
+                self.state = "gone"
+        self.shoo(dt)
+
+    def draw(self, dst, cam):
+        ko = self.state == "ko"
+        p = (self.pos[0] - cam[0], self.pos[1] - cam[1])
+        moving = self.state in ("rescue", "leave", "stroll", "flee")
+        surf, anchor = art.draw_mum(self.anim if moving else 0, ko=ko, cross=self.swing_t > 0)
+        art.blit_actor(dst, surf, anchor, (p[0], p[1] - (8 if ko else 0)), self.facing, self.angle)
+        if ko:
+            return
+        sx, sy = self.shoulder()
+        broom, banchor = art.draw_broom()
+        a = self.broom_angle()
+        if math.cos(a) >= 0:
+            art.blit_actor(dst, broom, banchor, (sx - cam[0], sy - cam[1]), 1, -math.degrees(a))
+        else:
+            art.blit_actor(dst, broom, banchor, (sx - cam[0], sy - cam[1]), -1, -math.degrees(a) - 180)
 
 
 # --------------------------------------------------------------------------

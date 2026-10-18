@@ -28,7 +28,7 @@ ALIASES = {
 VOLUME = {
     "carol": 0.55, "chortle": 0.6, "caw": 0.55, "caaaw": 0.5, "chatter": 0.6, "meow": 0.6, "hiss": 0.6,
     "mum": 0.85, "scream": 0.5, "oi": 0.9, "grumble": 0.7, "yell": 0.7, "shotgun": 0.75, "pump": 0.6,
-    "bang": 0.8, "thump": 0.85, "swoosh": 0.6, "flap": 0.35, "crack": 0.8, "thud": 0.7,
+    "threat": 1.0, "shoo": 1.0, "bang": 0.8, "thump": 0.85, "swoosh": 0.6, "flap": 0.35, "crack": 0.8, "thud": 0.7,
 }
 
 

@@ -148,6 +148,8 @@ class Game:
         elif th.is_kid:
             self.fx.text(random.choice(hits.WORDS["flee"]), th.head_pos(), "plain", 20, drift=-40)
             self.audio.play("waah", 0.6, min_gap=0.8)
+        elif th.kind == "mum":
+            self.fx.text("I'LL BE TALKING TO YOUR MOTHER!", th.head_pos(), "plain", 15, drift=-40)
         elif th.kind == "cat":
             self.fx.text("HISSS!", th.head_pos(), "plain", 18, drift=-40)
             self.audio.play("hiss", 0.8)

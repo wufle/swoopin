@@ -13,6 +13,7 @@ recordists.
 | `carol.ogg`, `chortle.ogg` | [Magpiesong.ogg](https://commons.wikimedia.org/wiki/File:Magpiesong.ogg) (Wikimedia Commons) | Meganesia | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 | `carol2.ogg` | [Magpie Caroling.ogg](https://commons.wikimedia.org/wiki/File:Magpie_Caroling.ogg) (Wikimedia Commons) | Hullwarren | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 | `caw.ogg`, `caaaw.ogg` | [An audio recording of an Australian Raven (Corvus coronoides).wav](https://commons.wikimedia.org/wiki/File:An_audio_recording_of_an_Australian_Raven_%28Corvus_coronoides%29.wav) (Wikimedia Commons) | 7575u | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
+| `shoo0.ogg` | [LL-Q1860 (eng)-Vealhurl-shoo.wav](https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-shoo.wav) (Wikimedia Commons / Lingua Libre) | Vealhurl | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 | `chatter.ogg` | [Willie Wagtail chatter call.wav](https://commons.wikimedia.org/wiki/File:Willie_Wagtail_chatter_call.wav) (Wikimedia Commons) | Rhawne | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `meow0.ogg` | [Begging Meow](https://freesound.org/s/732521/) (Freesound #732521) | Lukey1028 | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `meow1.ogg` | [cat meow](https://freesound.org/s/110011/) (Freesound #110011) | tuberatanka | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |

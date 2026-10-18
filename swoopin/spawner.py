@@ -55,6 +55,7 @@ class Spawner:
         self.innocent_t = 2.5
         self.dad_rage = 0.0
         self.dad_side = 1
+        self.mum_cd = 20.0
         self.pick_dirs()
 
     @property
@@ -148,6 +149,9 @@ class Spawner:
                     th = TH.Kid(g, side, innocent=True)
                 g.threats.append(th)
                 self.spawned["innocent"] += 1
+                if th.kind == "kid" and self.mum_ready() and random.random() < T.MUM_ESCORT_CHANCE:
+                    self.spawn_mum(side, escort=th)
+        self.mum_cd -= dt
         self.dad_rage = max(0.0, self.dad_rage - T.DAD_RAGE_DECAY * dt)
         if self.dad_rage >= T.DAD_RAGE_THRESHOLD and self.count_alive("dad") < T.DAD_MAX:
             self.dad_rage = 0.0
@@ -157,8 +161,25 @@ class Spawner:
 
     def kid_hit(self, th):
         # innocents are what really sets the dads off; nest-raiding brats had it coming
-        self.dad_rage += 1.0 if th.innocent else T.DAD_RAGE_BRAT
+        if th.kind == "mum":
+            self.dad_rage += T.DAD_RAGE_MUM
+        else:
+            self.dad_rage += 1.0 if th.innocent else T.DAD_RAGE_BRAT
         self.dad_side = th.side  # dad comes from the way the kid came
+        if th.is_kid and th.innocent and self.mum_ready() and random.random() < T.MUM_RESCUE_CHANCE:
+            self.spawn_mum(th.side, rescue=th)
+
+    def mum_ready(self):
+        return self.mum_cd <= 0 and self.count_alive("mum") < T.MUM_MAX
+
+    def spawn_mum(self, side, rescue=None, escort=None):
+        self.mum_cd = T.MUM_COOLDOWN
+        mum = TH.Mum(self.game, side, rescue=rescue, escort=escort)
+        if rescue is not None:  # the kid stays down until Mum gets there
+            run = abs(mum.pos[0] - rescue.pos[0]) / T.MUM_RUN_SPEED
+            rescue.ko_t = max(rescue.ko_t, min(6.0, run + 0.6))
+        self.game.threats.append(mum)
+        self.spawned["mum"] = self.spawned.get("mum", 0) + 1
 
     def active(self):
         return sum(1 for th in self.game.threats

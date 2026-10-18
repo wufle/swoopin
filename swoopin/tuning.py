@@ -1,0 +1,119 @@
+"""Every gameplay, pacing and difficulty number in one place."""
+
+# Screen / world
+SCREEN_W, SCREEN_H = 960, 540
+WORLD_W = 1440
+GROUND_Y = 478
+NEST_X, NEST_Y = WORLD_W // 2, 232
+TRUNK_TOP_Y = 248
+FPS = 60
+
+# Season
+SEASON_LENGTH = 600.0  # 10:00, then the chicks fledge
+WAVE_LENGTH = 35.0
+BREATHER = 3.0
+START_EGGS = 4
+MAX_EGGS = 4
+EGG_SURVIVAL_BONUS = 500
+PERFECT_WAVE_BONUS = 250
+DIFFICULTY_EXPONENT = 1.5  # ease-in curve on season progress
+
+# Magpie flight (Flappy-style)
+GRAVITY = 1250.0
+FLAP_IMPULSE = -400.0
+FLAP_FORWARD = 50.0
+H_ACCEL = 700.0
+H_DRAG = 2.2
+H_MAX = 250.0
+MAX_FALL = 620.0
+SWOOP_VX = 470.0
+SWOOP_VY = 400.0
+SWOOP_TIME = 0.6
+SWOOP_COOLDOWN = 0.3
+SWOOP_BOUNCE = -440.0
+CLAW_ACTIVE = 0.16
+CLAW_COOLDOWN = 0.42
+CLAW_REACH = 24
+CLAW_RADIUS = 24
+PECK_COOLDOWN = 0.4
+STUN_TIME = 0.6
+HIT_STUN_TIME = 0.45
+INVULN_TIME = 1.0
+
+# Territory leash (ellipse around the nest)
+TERRITORY_RX = 520.0
+TERRITORY_RY = 380.0
+TERRITORY_DRAIN = 0.4
+TERRITORY_REFILL = 0.55
+TERRITORY_SLOW = 0.6
+TERRITORY_HEADWIND = 260.0
+TERRITORY_PULL = 900.0
+
+# Damage
+DMG_SWOOP = 1.0
+DMG_CLAW = 1.0
+DMG_CLAW_CLIMBER = 2.0
+DMG_PECK = 0.5
+EYE_DAMAGE_MULT = 2.0
+HELMET_DAMAGE_MULT = 0.5
+BACKHEAD_DAMAGE_MULT = 1.5
+
+# Score multipliers per hit zone
+ZONE_SCORE = {"body": 1, "head": 2, "helmet": 1, "backhead": 3, "eye": 5}
+KO_BONUS_MULT = 3
+QUICK_KO_WINDOW = 1.0  # seconds after first appearing on screen
+QUICK_KO_BONUS = 100
+HAT_BONUS = 30
+EGG_SAVED_BONUS = 150
+COMBO_STEP = 3  # hits per +1 multiplier
+COMBO_MAX_MULT = 5
+
+# Threat base stats: hp, speed (px/s), score, time at nest to do damage
+THREATS = {
+    "kid": dict(hp=2, speed=55, score=10, attack_time=3.0),
+    "bike": dict(hp=2, speed=120, score=15, attack_time=2.6),
+    "postie": dict(hp=4, speed=140, score=25, attack_time=2.4),
+    "crow": dict(hp=2, speed=90, score=20, attack_time=2.2),
+    "butcherbird": dict(hp=1, speed=150, score=25, attack_time=1.2),
+    "djiti": dict(hp=1, speed=185, score=35, attack_time=1.6),
+    "cat": dict(hp=3, speed=70, score=20, attack_time=1.2),
+    "goanna": dict(hp=6, speed=32, score=40, attack_time=1.6),
+}
+CLIMB_SPEED = {"cat": 38, "goanna": 20}
+
+# Difficulty scaling (difficulty d runs 0 -> 1 over the season)
+SPEED_SCALE_MAX = 0.6  # 1.0x -> 1.6x
+ATTACK_TIME_SCALE_START = 1.8  # time needed at the nest: generous early...
+ATTACK_TIME_SCALE_END = 0.8  # ...ruthless late
+HP_PLUS_ONE_AT = 0.5
+HP_PLUS_TWO_AT = 0.85
+SPAWN_INTERVAL_START = 4.6
+SPAWN_INTERVAL_END = 0.95
+MAX_ACTIVE_START = 3
+MAX_ACTIVE_END = 13
+KO_RECOVER_START = 3.0
+KO_RECOVER_END = 1.1
+RETURN_CHANCE_START = 0.25
+RETURN_CHANCE_END = 0.8
+RETURN_DELAY_START = 12.0
+RETURN_DELAY_END = 3.5
+DUCK_CHANCE_MAX = 0.5
+DUCK_FROM = 0.3
+THROW_INTERVAL_START = 4.5
+THROW_INTERVAL_END = 1.6
+THROW_LEAD_MAX = 1.0  # fraction of magpie velocity the kid leads by
+
+# Phase boundaries (seconds into the season)
+PHASES = [
+    (0, "EARLY SEASON"),
+    (90, "BUILDING"),
+    (210, "PEAK SEASON"),
+    (360, "LATE SEASON"),
+    (510, "FINAL PUSH"),
+]
+
+# Juice
+SHAKE_BIG = 7.0
+SHAKE_SMALL = 3.0
+HITPAUSE_BIG = 3  # frames
+COMIC_TEXT_TIME = 0.65

@@ -14,7 +14,8 @@ recordists.
 | `carol2.ogg` | [Magpie Caroling.ogg](https://commons.wikimedia.org/wiki/File:Magpie_Caroling.ogg) (Wikimedia Commons) | Hullwarren | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 | `caw.ogg`, `caaaw.ogg` | [An audio recording of an Australian Raven (Corvus coronoides).wav](https://commons.wikimedia.org/wiki/File:An_audio_recording_of_an_Australian_Raven_%28Corvus_coronoides%29.wav) (Wikimedia Commons) | 7575u | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 | `chatter.ogg` | [Willie Wagtail chatter call.wav](https://commons.wikimedia.org/wiki/File:Willie_Wagtail_chatter_call.wav) (Wikimedia Commons) | Rhawne | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
-| `meow.ogg` | [Meow of a Siamese cat - freemaster2.wav](https://commons.wikimedia.org/wiki/File:Meow_of_a_Siamese_cat_-_freemaster2.wav) (Wikimedia Commons) | freemaster2 | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `meow0.ogg` | [Begging Meow](https://freesound.org/s/732521/) (Freesound #732521) | Lukey1028 | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `meow1.ogg` | [cat meow](https://freesound.org/s/110011/) (Freesound #110011) | tuberatanka | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `bang2.ogg` | [Punch #2.mp3](https://freesound.org/s/162369/) (Freesound #162369) | lewisisminted | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `mum0.ogg` | [MOMMY.mp3](https://freesound.org/s/184748/) (Freesound #184748) | AlucardsBride | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `scream0.ogg` | [kid screaming.wav](https://freesound.org/s/220815/) (Freesound #220815) | EricSueiro | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |

@@ -148,6 +148,8 @@ def apply_hit(game, th, kind, zone, point):
             label = label or "QUICK!"
     game.add_score(pts, (spot[0], spot[1] - 30), label=label)
 
+    game.stats.hit(game, th, kind, zone, ko)
+
     if game.combo >= 5 and game.combo % 5 == 0:
         # shout it up by the combo counter, not over the action
         fx.text(random.choice(WORDS["combo"]), (game.cam[0] + 170, game.cam[1] + 100), "big", 24, life=0.9,

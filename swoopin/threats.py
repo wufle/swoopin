@@ -201,8 +201,12 @@ class Walker(Threat):
             return
         if self.state in ("flee", "flee_win"):
             self.facing = self.side
-            self.anim += dt * 10
-            self.pos[0] += self.side * self.speed * (1.1 if self.state == "flee" else 1.3) * dt
+            if self.is_kid:  # bolting for home
+                mult = T.KID_FLEE_MULT
+            else:
+                mult = 1.1 if self.state == "flee" else 1.3
+            self.anim += dt * 10 * (1.6 if self.is_kid else 1.0)
+            self.pos[0] += self.side * self.speed * mult * dt
             self.exit_check()
             return
 

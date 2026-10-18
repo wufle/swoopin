@@ -68,6 +68,10 @@ aspect ratios.
   walk off the edge. A swoop passes straight through the nest, so dives at
   raiders still land.
 - Flying too far from the nest drains your territory meter and drags you back.
+- At the end of every game, a stats screen shows your season: swoop accuracy,
+  bullseyes, best combo, eggs lost and rescued, hats nicked, time spent
+  guarding the nest, times you got shot, and a knockout tally for every
+  attacker type.
 
 ## Code layout
 

@@ -273,3 +273,8 @@ swoopin/
   with an inset border, the magpie silhouette diving at a person with one arm
   raised, and a "SWOOPING / BIRDS AHEAD" plate sized to its text. Drawn at 4x
   and smoothed down.
+- **End-of-game stats screen:** score counts up, then "Your season" (waves,
+  best combo, swoop accuracy, bullseyes, hits, eggs lost / rescued / earned
+  back, perfect waves, hats, time guarding the nest, times shot) and a
+  knockout tally with a sprite icon per attacker type, revealed row by row.
+- **Kids bolt for home** at 2.4x walking speed once they've been swooped.

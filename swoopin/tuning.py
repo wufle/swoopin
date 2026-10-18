@@ -94,6 +94,7 @@ INNOCENT_MAX = 4
 INNOCENT_BIKE_CHANCE = 0.3
 INNOCENT_BONUS = 50
 INNOCENT_PANIC_RANGE = 160
+KID_FLEE_MULT = 2.4  # kids bolt for home once they've been swooped (x their walking speed)
 DAD_RAGE_THRESHOLD = 4  # kids knocked out (roughly) before a dad turns up
 DAD_RAGE_DECAY = 1 / 30  # rage points forgiven per second
 DAD_RAGE_BRAT = 0.3  # a nest-raiding brat only counts this much

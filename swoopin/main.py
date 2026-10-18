@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pygame
 
-from . import art, hits
+from . import art, hits, stats
 from . import palette as P
 from . import tuning as T
 from .audio import Audio
@@ -97,6 +97,8 @@ class Game:
         self.end_t = None
         self.new_best = False
         self.seen_perch_tip = False
+        self.stats = stats.Stats()
+        self.end_screen_t = 0.0
         self.spawner = Spawner(self)
         self.scene = "play"
         self.paused = False
@@ -155,6 +157,7 @@ class Game:
             return
         self.eggs -= 1
         self.wave_eggs_lost += 1
+        self.stats.eggs_lost += 1
         self.combo = 0
         self.fx.text("CRACK!", (T.NEST_X, T.NEST_Y - 30), "bad", 32, life=0.9)
         self.fx.shake.add(T.SHAKE_BIG)
@@ -170,6 +173,7 @@ class Game:
         self.eggs -= 1
         self.carried += 1
         self.wave_eggs_lost += 1
+        self.stats.eggs_lost += 1
         self.combo = 0
         self.fx.text("EGG NICKED!", (T.NEST_X, T.NEST_Y - 30), "bad", 26, life=0.9)
         self.audio.play("crack", 0.6)
@@ -183,6 +187,8 @@ class Game:
             self.in_transit -= 1
             self.eggs = min(T.MAX_EGGS, self.eggs + 1)
             self.wave_eggs_lost = max(0, self.wave_eggs_lost - 1)
+            self.stats.eggs_lost -= 1
+            self.stats.eggs_saved += 1
             self.fx.text("EGG SAVED!", (T.NEST_X, T.NEST_Y - 40), "good", 26, life=0.9)
             self.add_score(T.EGG_SAVED_BONUS, (T.NEST_X, T.NEST_Y - 60))
             self.audio.play("egg")
@@ -214,6 +220,9 @@ class Game:
     def magpie_hurt(self, src, word):
         m = self.magpie
         self.combo = 0
+        self.stats.times_hurt += 1
+        if word == "PEPPERED!":
+            self.stats.times_shot += 1
         self.fx.text(word, (m.pos[0], m.pos[1] - 30), "bad", 22)
         self.fx.burst("feather", m.pos, 6)
         self.fx.burst("feather_w", m.pos, 3)
@@ -227,10 +236,12 @@ class Game:
         perfect = self.wave_eggs_lost == 0
         self.banner(f"WAVE {n} DONE  -  {self.wave_hits} HITS  {self.wave_kos} KOs", sub=True)
         if perfect:
+            self.stats.perfect_waves += 1
             self.score += T.PERFECT_WAVE_BONUS
             self.banner(f"PERFECT WAVE +{T.PERFECT_WAVE_BONUS}", sub=True)
             if self.eggs + self.carried + self.in_transit < T.MAX_EGGS:
                 self.eggs += 1
+                self.stats.eggs_restored += 1
                 self.banner("+1 EGG", sub=True)
                 self.audio.play("egg")
         self.audio.play("carol", 0.5)
@@ -248,6 +259,7 @@ class Game:
             self.title_t += dt
             return
         if self.scene in ("over", "victory"):
+            self.end_screen_t += dt
             self.fx.update(dt)
             self.hud.update(dt)
             return
@@ -269,8 +281,10 @@ class Game:
             if ev == "flap":
                 self.audio.play("flap", 0.5)
             elif ev == "swoop":
+                self.stats.swoops += 1
                 self.audio.play("swoop")
             elif ev == "claw":
+                self.stats.claws += 1
                 self.audio.play("claw", 0.7)
             elif ev == "landed":
                 self.combo = 0
@@ -280,6 +294,8 @@ class Game:
             elif ev == "pulled":
                 self.banner("BACK TO THE NEST!", sub=True)
 
+        if self.magpie.perched:
+            self.stats.perch_time += dt
         if self.end_t is None:
             self.spawner.update(dt)
         for th in self.threats:
@@ -311,6 +327,7 @@ class Game:
     def finish(self, victory):
         self.scene = "victory" if victory else "over"
         self.end_t = None
+        self.end_screen_t = 0.0
         self.fx.clear()
         if victory:
             bonus = self.eggs * T.EGG_SURVIVAL_BONUS
@@ -350,24 +367,14 @@ class Game:
         if m.perched:
             self.level.draw_nest_front(dst, cam)
         self.fx.draw_air(dst, cam)
-        self.hud.draw(dst, self)
+        if self.scene == "play":
+            self.hud.draw(dst, self)
         if self.debug:
             self.hud.draw_debug(dst, self)
         if self.paused:
             self.overlay(dst, "PAUSED", ["P / ESC  resume", "Q  quit to title"])
-        elif self.scene == "over":
-            mins, secs = divmod(int(self.survived), 60)
-            lines = [f"SCORE  {self.score:,}", f"SURVIVED  {mins}:{secs:02d}  of 10:00",
-                     f"HATS NICKED  {self.level.trophy_hats}",
-                     "NEW HIGH SCORE!" if self.new_best else f"BEST  {self.high.get('score', 0):,}",
-                     "", "SPACE  play again      ESC  title"]
-            self.overlay(dst, "NEST RAIDED!", lines)
-        elif self.scene == "victory":
-            lines = [f"THE CHICKS FLEDGED!", f"EGGS SAVED  {self.eggs}  (+{self.egg_bonus:,})",
-                     f"SCORE  {self.score:,}", f"HATS NICKED  {self.level.trophy_hats}",
-                     "NEW HIGH SCORE!" if self.new_best else f"BEST  {self.high.get('score', 0):,}",
-                     "", "SPACE  play again      ESC  title"]
-            self.overlay(dst, "SEASON SURVIVED!", lines)
+        elif self.scene in ("over", "victory"):
+            stats.draw(dst, self, self.end_screen_t)
 
     def overlay(self, dst, title, lines):
         shade = pygame.Surface((W, H), pygame.SRCALPHA)

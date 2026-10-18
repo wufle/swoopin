@@ -21,6 +21,7 @@ class Controls:
     claw: bool = False
     left: bool = False
     right: bool = False
+    poop: bool = False
 
 
 class Magpie:
@@ -38,6 +39,7 @@ class Magpie:
         self.claw_cd = 0.0
         self.claw_hits = set()
         self.peck_cd = 0.0
+        self.poop_cd = 0.0
         self.stun_t = 0.0
         self.invuln = 0.0
         self.flap_phase = 0.0
@@ -63,6 +65,11 @@ class Magpie:
 
     def tip(self):
         ox, oy = art.xform(BEAK_TIP, self.facing, self.angle)
+        return self.pos[0] + ox, self.pos[1] + oy
+
+    def vent(self):
+        """Where a poop leaves the bird: just under the tail."""
+        ox, oy = art.xform((-24, 6), self.facing, self.angle)
         return self.pos[0] + ox, self.pos[1] + oy
 
     def claw_center(self):
@@ -96,7 +103,7 @@ class Magpie:
         """Advance one step. Returns a list of event names."""
         events = []
         self.t += dt
-        for name in ("swoop_cd", "claw_cd", "peck_cd", "invuln", "flap_anim"):
+        for name in ("swoop_cd", "claw_cd", "peck_cd", "poop_cd", "invuln", "flap_anim"):
             setattr(self, name, max(0.0, getattr(self, name) - dt))
         self.claw_t = max(0.0, self.claw_t - dt)
 
@@ -142,6 +149,9 @@ class Magpie:
                 self.swoop_hits = set()
                 self.vel = [self.facing * T.SWOOP_VX, T.SWOOP_VY]
                 events.append("swoop")
+            if ctl.poop and self.poop_cd <= 0 and not self.grounded:
+                self.poop_cd = T.POOP_COOLDOWN
+                events.append("poop")
             if ctl.claw and self.claw_cd <= 0:
                 self.claw_t = T.CLAW_ACTIVE
                 self.claw_cd = T.CLAW_COOLDOWN

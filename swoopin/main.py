@@ -18,7 +18,7 @@ from .hud import HUD
 from .level import Level
 from .magpie import Controls, Magpie
 from .spawner import Spawner
-from .threats import progress_bar
+from .threats import Poop, progress_bar
 
 W, H = T.SCREEN_W, T.SCREEN_H
 DATA_DIR = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "swoopin"
@@ -285,6 +285,11 @@ class Game:
             elif ev == "swoop":
                 self.stats.swoops += 1
                 self.audio.play("swoop")
+            elif ev == "poop":
+                self.stats.poops += 1
+                m = self.magpie
+                self.projectiles.append(Poop(m.vent(), (m.vel[0] * T.POOP_CARRY, max(m.vel[1], 0) * 0.3 + 60)))
+                self.audio.play("fart", 0.9)
             elif ev == "claw":
                 self.stats.claws += 1
                 self.audio.play("claw", 0.7)
@@ -410,15 +415,16 @@ class Game:
         sub = tc.get("Defend the nest. Swoop the lot of 'em.", 22, P.BONE, P.CHARCOAL, 2)
         dst.blit(sub, (W / 2 - sub.get_width() / 2, 150))
         controls = ["SPACE / W / UP / CLICK   flap", "S / DOWN   swoop dive", "SHIFT / X   claw / peck",
-                    "A D / LEFT RIGHT   steer  (or walk, when landed)", "P / ESC   pause      F11   fullscreen"]
-        y = 300
-        panel = pygame.Surface((420, 26 * len(controls) + 16), pygame.SRCALPHA)
+                    "A D / LEFT RIGHT   steer  (or walk, when landed)", "CTRL   poop  (while flying)",
+                    "P / ESC   pause      F11   fullscreen"]
+        y = 284
+        panel = pygame.Surface((440, 25 * len(controls) + 12), pygame.SRCALPHA)
         panel.fill((*P.CHARCOAL, 150))
-        dst.blit(panel, (W / 2 - 210, y - 8))
+        dst.blit(panel, (W / 2 - 220, y - 7))
         for c in controls:
-            img = tc.get(c, 17, P.BONE, P.CHARCOAL, 1, False)
+            img = tc.get(c, 16, P.BONE, P.CHARCOAL, 1, False)
             dst.blit(img, (W / 2 - img.get_width() / 2, y))
-            y += 26
+            y += 25
         if int(t * 2) % 2 == 0:
             ps = tc.get("PRESS SPACE", 32, P.WATTLE, P.CHARCOAL, 3)
             dst.blit(ps, (W / 2 - ps.get_width() / 2, 460))
@@ -458,6 +464,7 @@ class Game:
 FLAP_KEYS = (pygame.K_SPACE, pygame.K_UP, pygame.K_w)
 SWOOP_KEYS = (pygame.K_DOWN, pygame.K_s)
 CLAW_KEYS = (pygame.K_LSHIFT, pygame.K_RSHIFT, pygame.K_x)
+POOP_KEYS = (pygame.K_LCTRL, pygame.K_RCTRL)
 
 
 def toggle_fullscreen():
@@ -511,6 +518,8 @@ def main():
                     ctl.swoop = True
                 elif in_play and ev.key in CLAW_KEYS:
                     ctl.claw = True
+                elif in_play and ev.key in POOP_KEYS:
+                    ctl.poop = True
                 else:
                     running = game.handle_key(ev.key) and running
             elif ev.type == pygame.MOUSEBUTTONDOWN and game.scene == "play" and not game.paused:

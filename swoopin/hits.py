@@ -160,3 +160,41 @@ def apply_hit(game, th, kind, zone, point):
         fx.text(random.choice(WORDS["combo"]), (game.cam[0] + 170, game.cam[1] + 100), "big", 24, life=0.9,
                 drift=0)
         audio.play("chortle", 0.8)
+
+
+POOP_WORDS = ["SPLAT!", "PLOP!", "SPLOOSH!"]
+
+
+def apply_poop(game, th, zone, point):
+    """A dropping lands on someone. Kids are grossed out and go home (no KO, so
+    no angry dads); grown-ups get distracted; animals take a little damage."""
+    fx, audio = game.fx, game.audio
+    game.combo += 1
+    mult = game.combo_mult()
+    pts = (th.score + T.POOP_BONUS) * mult
+    game.stats.poop_hits += 1
+    hx, hy = th.head_pos()
+    mx = game.magpie.pos[0]
+    spot = (hx + (40 if hx >= mx else -40), hy - 26)
+    fx.text(random.choice(POOP_WORDS), spot, "hit", 24)
+    audio.play("splat", 0.9)
+    if zone in ("head", "eye", "helmet", "backhead"):
+        th.pooped = True
+    walking_off = th.state in ("flee", "flee_win", "leave", "gone")
+    if th.is_kid or th.kind == "mum":
+        if not walking_off:
+            fx.text("EEEW!", (hx, hy - 4), "plain", 22, drift=-45)
+            audio.play("eew", 1.0, min_gap=0.4)
+            if th.kind == "mum":
+                th.state = "leave"
+                th.swing_t = 0.0
+            else:
+                th.state = "flee"  # straight home to wash it off
+                th.progress = 0.0
+                th.scared_t = 1.0
+    elif th.kind == "dad":
+        fx.text("AW, MATE!", (hx, hy - 4), "plain", 20, drift=-45)
+        th.on_hurt(point)  # spoils his aim
+    else:
+        th.take_damage(T.DMG_POOP, game.magpie.pos)
+    game.add_score(pts, (spot[0], spot[1] - 30), label="POOPED!")

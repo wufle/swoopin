@@ -50,6 +50,8 @@ class Stats:
         self.times_hurt = 0
         self.times_shot = 0
         self.perch_time = 0.0
+        self.poops = 0
+        self.poop_hits = 0
 
     def hit(self, game, th, kind, zone, ko):
         self.hits += 1
@@ -163,6 +165,7 @@ def draw(dst, g, t):
         ("Time guarding the nest", f"{pm}:{ps:02d}"),
         ("Angry dads / mums sent", f"{g.spawner.spawned.get('dad', 0)} / {g.spawner.spawned.get('mum', 0)}"),
         ("Shot by dads", f"{st.times_shot}"),
+        ("Poops dropped / direct hits", f"{st.poops} / {st.poop_hits}"),
     ]
     header(dst, tc, "YOUR SEASON", 60, top + 10)
     y = top + 42
@@ -172,7 +175,7 @@ def draw(dst, g, t):
         dst.blit(tc.get(label, 15, P.BONE, P.CHARCOAL, 1, False), (60, y))
         v = tc.get(value, 15, P.WATTLE, P.CHARCOAL, 1, False)
         dst.blit(v, (440 - v.get_width(), y))
-        y += 22
+        y += 20
 
     # right: knockouts
     total = sum(st.kos.values())

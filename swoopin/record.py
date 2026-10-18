@@ -27,7 +27,8 @@ CREDITS = SOUND_DIR / "CREDITS.md"
 RATE = 44100
 
 USES = {
-    "threat": "the angry dad, as he starts taking aim",
+    "threat": "the angry dad as he takes aim",
+    "eew": "a kid who has just been pooped on",
     "shoo": "a mum shooing the magpie away from her kids",
     "oi": "the angry dad arriving",
     "yell": "the dad when you hit him",
@@ -97,11 +98,11 @@ def credit(name):
     """Note own recordings in CREDITS.md (once per sound name)."""
     text = CREDITS.read_text() if CREDITS.exists() else "# Sound credits\n"
     marker = "## Recorded for this game"
-    row = f"| `{name}*.ogg` | Recorded with `python -m swoopin.record` |"
-    if row in text:
+    row = f"| `{name}*.ogg` | {USES.get(name, 'custom sound')} |"
+    if f"| `{name}*.ogg` |" in text:
         return
     if marker not in text:
-        text = text.rstrip() + f"\n\n{marker}\n\n| Game file(s) | Source |\n|---|---|\n"
+        text = text.rstrip() + f"\n\n{marker}\n\n| Game file(s) | Line |\n|---|---|\n"
     CREDITS.write_text(text.rstrip("\n") + "\n" + row + "\n")
 
 

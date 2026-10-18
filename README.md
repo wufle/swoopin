@@ -40,6 +40,7 @@ aspect ratios.
 | Space / W / Up / left-click | Flap (gravity always pulls you down) |
 | S / Down / right-click | Swoop dive in the facing direction. A hit bounces you back up to chain combos |
 | Shift / X | Claw: short-range slash. Does double damage to climbers on the trunk |
+| Ctrl | Poop (while flying) |
 | A D / Left Right | Steer and turn in the air, or walk on two legs once you've landed |
 | P / Esc | Pause (Q while paused quits to the title screen) |
 | F1 | Debug overlay (difficulty, spawn stats) |
@@ -59,6 +60,10 @@ aspect ratios.
   aim (a dashed red line that locks just before he fires), and lets fly with a
   shotgun spread. Get out of the line, or swoop him to spoil his aim. He takes
   three hits.
+- **Poop** with Ctrl while flying (with a little fart). A splat on a kid's
+  head gets an "EEEW!", and the kid runs home to wash it off. That counts as
+  dealing with them but isn't a knockout, so no angry dads. It sends brats
+  away from the tree, spoils a dad's aim, and stings animals a little.
 - Sometimes a **mum** comes running to a knocked-out kid and stands guard,
   or walks along with one. Come too close and she yells **"SHOO!"** and
   swings a broom at you. Knocking out a mum gets you a cheeky bonus, but
@@ -84,6 +89,7 @@ Plug in a mic and run:
 ```sh
 python -m swoopin.record threat     # the dad's line as he takes aim
 python -m swoopin.record shoo       # a mum shooing the magpie
+python -m swoopin.record eew        # a kid who's just been pooped on
 python -m swoopin.record --list     # every sound name and what it's for
 ```
 

@@ -286,3 +286,9 @@ swoopin/
 - **Record your own sounds:** `python -m swoopin.record <name>` records from
   the default mic, trims, levels and saves a numbered variant. The dad plays
   `threat` as he starts aiming, and the mum plays `shoo`.
+- **Poop:** Ctrl while flying drops one (fart sound, 0.55 s cooldown). It
+  carries some of the magpie's speed. On a kid or mum it's a gross-out
+  ("EEEW!" plus a voice clip, a splat left on their head), and they go home
+  without a KO, so the DAD-O-METER doesn't move. Brats leave the tree, dads
+  lose their aim, and animals take a little damage. Misses splat on the
+  footpath. Stats count drops and direct hits.

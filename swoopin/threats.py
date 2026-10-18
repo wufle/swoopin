@@ -30,6 +30,7 @@ class Threat:
     kind = "?"
     is_kid = False
     innocent = False
+    pooped = False
     flies = False
     climbs = False
     ZONES = []
@@ -344,6 +345,8 @@ class Kid(Walker):
                                     brat=not self.innocent, bag=self.bag)
         art.blit_actor(dst, surf, anchor, (self.pos[0] - cam[0], self.pos[1] - cam[1] - (6 if ko else 0)),
                        self.facing, self.angle)
+        if self.pooped and not ko:
+            draw_head_poop(dst, self, cam)
 
 
 class BikeKid(Walker):
@@ -378,6 +381,8 @@ class BikeKid(Walker):
         scared = self.scared_t > 0 or self.state in ("flee", "flee_win")
         surf, anchor = art.draw_bike_kid(self.anim, self.shirt, ko=ko, scared=scared, brat=not self.innocent)
         art.blit_actor(dst, surf, anchor, p, self.facing, self.angle)
+        if self.pooped and not ko:
+            draw_head_poop(dst, self, cam)
 
     def update(self, dt):
         if self.crashed and self.state == "flee":
@@ -529,6 +534,8 @@ class Dad(Walker):
         p = (self.pos[0] - cam[0], self.pos[1] - cam[1])
         surf, anchor = art.draw_dad(self.anim if self.state in ("approach", "flee") else 0, ko=ko)
         art.blit_actor(dst, surf, anchor, (p[0], p[1] - (8 if ko else 0)), self.facing, self.angle)
+        if self.pooped and not ko:
+            draw_head_poop(dst, self, cam)
         if ko:
             return
         if self.state == "aim":
@@ -668,6 +675,8 @@ class Mum(Walker):
         moving = self.state in ("rescue", "leave", "stroll", "flee")
         surf, anchor = art.draw_mum(self.anim if moving else 0, ko=ko, cross=self.swing_t > 0)
         art.blit_actor(dst, surf, anchor, (p[0], p[1] - (8 if ko else 0)), self.facing, self.angle)
+        if self.pooped and not ko:
+            draw_head_poop(dst, self, cam)
         if ko:
             return
         sx, sy = self.shoulder()
@@ -1079,6 +1088,53 @@ class Projectile:
 
     def draw(self, dst, cam):
         art.blit_actor(dst, self.surf, self.anchor, (self.pos[0] - cam[0], self.pos[1] - cam[1]), 1, self.angle)
+
+
+class Poop(Projectile):
+    """Dropped by the magpie. Falls, and splats on whoever is underneath."""
+
+    def __init__(self, pos, vel):
+        self.kind = "poop"
+        self.pos = [pos[0], pos[1]]
+        self.vel = [vel[0], vel[1]]
+        self.alive = True
+
+    def update(self, dt, game):
+        from . import hits
+        self.vel[1] += T.GRAVITY * 0.8 * dt
+        self.vel[0] *= 1 - 0.8 * dt
+        self.pos[0] += self.vel[0] * dt
+        self.pos[1] += self.vel[1] * dt
+        for th in game.threats:
+            if not th.hittable:
+                continue
+            zone = hits.classify(th.zones(), self.pos, 5)
+            if zone:
+                hits.apply_poop(game, th, zone, tuple(self.pos))
+                self.alive = False
+                return
+        if self.pos[1] >= GY + 6:
+            self.alive = False
+            game.fx.poop_splat((self.pos[0], GY + 8))
+            game.audio.play("splat", 0.4)
+        elif not (-40 < self.pos[0] < T.WORLD_W + 40):
+            self.alive = False
+
+    def draw(self, dst, cam):
+        x, y = round(self.pos[0] - cam[0]), round(self.pos[1] - cam[1])
+        pygame.draw.ellipse(dst, P.BONE, (x - 3, y - 4, 7, 9))
+        pygame.draw.ellipse(dst, P.DARK_GREY, (x - 3, y - 4, 7, 9), 1)
+        pygame.draw.circle(dst, P.DARK_GREY, (x, y + 1), 1)
+
+
+def draw_head_poop(dst, th, cam):
+    """A white splat sitting on a pooped-on head."""
+    hx, hy = th.head_pos()
+    x, y = hx - cam[0], hy - cam[1] + 7
+    pygame.draw.ellipse(dst, P.BONE, (x - 7, y - 3, 14, 6))
+    pygame.draw.ellipse(dst, P.DARK_GREY, (x - 7, y - 3, 14, 6), 1)
+    pygame.draw.circle(dst, P.DARK_GREY, (round(x + 1), round(y)), 1)
+    pygame.draw.line(dst, P.BONE, (x - 4, y + 2), (x - 4, y + 6), 2)
 
 
 class Pellet(Projectile):

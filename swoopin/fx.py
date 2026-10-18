@@ -220,6 +220,20 @@ class Splat:
             pygame.draw.polygon(dst, P.EGG, [(x + dx, y - 2), (x + dx + 5, y - 7), (x + dx + 6, y)])
 
 
+class PoopSplat(Splat):
+    """A bird dropping on the footpath."""
+
+    def draw(self, dst, cam):
+        x, y = self.pos[0] - cam[0], self.pos[1] - cam[1]
+        a = 255 if self.t < self.life - 1 else int(255 * max(0.0, self.life - self.t))
+        s = pygame.Surface((22, 10), pygame.SRCALPHA)
+        pygame.draw.ellipse(s, (*P.BONE, a), (2, 2, 18, 6))
+        for dx in (1, 15):
+            pygame.draw.circle(s, (*P.BONE, a), (dx + 3, 5), 2)
+        pygame.draw.circle(s, (*P.DARK_GREY, a), (11, 5), 2)
+        dst.blit(s, (x - 11, y - 5))
+
+
 class Shake:
     def __init__(self):
         self.mag = 0.0
@@ -290,6 +304,9 @@ class FX:
 
     def splat(self, pos):
         self.splats.append(Splat(pos))
+
+    def poop_splat(self, pos):
+        self.splats.append(PoopSplat(pos))
 
     def big_hit(self):
         self.shake.add(T.SHAKE_BIG)

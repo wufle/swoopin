@@ -18,18 +18,40 @@ def _lerp_col(a, b, k):
     return tuple(int(a[i] + (b[i] - a[i]) * k) for i in range(3))
 
 
+class Layer:
+    """A pre-drawn layer, cropped to what is actually drawn on it, in the
+    display's pixel format and RLE-encoded so blits skip transparent runs and
+    copy opaque ones. Blending whole transparent screens every frame was
+    most of the frame time in the browser."""
+
+    def __init__(self, surf, alpha=True):
+        rect = surf.get_bounding_rect() if alpha else surf.get_rect()
+        img = surf.subsurface(rect).copy()
+        if pygame.display.get_surface() is not None:
+            img = img.convert_alpha() if alpha else img.convert()
+        if alpha:
+            img.set_alpha(255, pygame.RLEACCEL)
+        self.img, self.off = img, rect.topleft
+
+    def blit(self, dst, x, y):
+        dst.blit(self.img, (x + self.off[0], y + self.off[1]))
+
+
 class Level:
     FAR = 0.25
     MID = 0.55
 
     def __init__(self):
         rnd = random.Random(7)
-        self.sky = self._sky()
-        self.far = self._far(rnd)
-        self.mid = self._mid(rnd)
-        self.world = self._world(rnd)
-        self.canopy = self._canopy(rnd)
-        self.ring = self._ring()
+        self.sky = Layer(self._sky(), alpha=False)
+        self.far = Layer(self._far(rnd))
+        self.mid = Layer(self._mid(rnd))
+        # the canopy scrolls with the world and is drawn straight after it
+        world = self._world(rnd)
+        world.blit(self._canopy(rnd), (0, 0))
+        self.world = Layer(world)
+        self.ring_src = self._ring()
+        self.rings = {}  # faded copies of the ring, by strength step
         self.trophy_hats = 0
 
     # -- static layers ----------------------------------------------------
@@ -312,17 +334,21 @@ class Level:
 
     def draw_back(self, dst, cam):
         cx, cy = cam
-        dst.blit(self.sky, (0, 0))
-        dst.blit(self.far, (-cx * self.FAR, -cy * 0.2))
-        dst.blit(self.mid, (-cx * self.MID, -cy * 0.5))
-        dst.blit(self.world, (-cx, -cy))
-        dst.blit(self.canopy, (-cx, -cy))
+        self.sky.blit(dst, 0, 0)
+        self.far.blit(dst, -cx * self.FAR, -cy * 0.2)
+        self.mid.blit(dst, -cx * self.MID, -cy * 0.5)
+        self.world.blit(dst, -cx, -cy)
 
     def draw_ring(self, dst, cam, strength):
         if strength <= 0:
             return
-        self.ring.set_alpha(int(255 * strength))
-        dst.blit(self.ring, (-cam[0], -cam[1]))
+        step = max(1, min(10, round(strength * 10)))
+        ring = self.rings.get(step)
+        if ring is None:
+            img = self.ring_src.copy()
+            img.fill((255, 255, 255, round(255 * step / 10)), special_flags=pygame.BLEND_RGBA_MULT)
+            ring = self.rings[step] = Layer(img)
+        ring.blit(dst, -cam[0], -cam[1])
 
     def _nest_bowl(self, dst, x, y):
         art.oellipse(dst, P.NEST, (x - 30, y - 6, 60, 18), 2)

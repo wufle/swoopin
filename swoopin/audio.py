@@ -7,6 +7,7 @@ at random each time. Silent if there is no audio device.
 
 import random
 import re
+import sys
 from pathlib import Path
 
 import pygame
@@ -78,10 +79,14 @@ class Audio:
         self.last = {}
         if not enabled:
             return
+        # In a browser the mixer runs on the same thread as the game, so a
+        # slow frame starves a small buffer and the sound crackles: use a
+        # bigger one there, at the 48 kHz the browser's audio runs at anyway.
+        rate, buf, chans = (48000, 2048, 16) if sys.platform == "emscripten" else (RATE, 512, 32)
         try:
-            pygame.mixer.pre_init(RATE, -16, 1, 512)
-            pygame.mixer.init(RATE, -16, 1, 512)
-            pygame.mixer.set_num_channels(32)
+            pygame.mixer.pre_init(rate, -16, 1, buf)
+            pygame.mixer.init(rate, -16, 1, buf)
+            pygame.mixer.set_num_channels(chans)
         except Exception:
             return
         self.ok = True

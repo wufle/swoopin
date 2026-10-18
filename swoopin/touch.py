@@ -46,6 +46,7 @@ class TouchPad:
         self.fingers = {}  # finger id -> button under it (or None)
         self.last_touch = -99.0
         self.flash = {}  # button -> time it was last pressed, for the glow
+        self.images = {}  # (button, lit) -> pre-drawn button
 
     # -- input -----------------------------------------------------------
 
@@ -130,15 +131,23 @@ class TouchPad:
             if name == "mate" and game.mate_calls <= 0:
                 continue
             lit = name in held or now - self.flash.get(name, -9) < 0.12
-            s = pygame.Surface((r * 2 + 4, r * 2 + 4), pygame.SRCALPHA)
-            o = (r + 2, r + 2)
-            pygame.draw.circle(s, (*(P.WATTLE if lit else P.CHARCOAL), 120 if lit else 80), o, r)
-            pygame.draw.circle(s, (*P.BONE, 200 if lit else 120), o, r, 3)
-            dst.blit(s, (c[0] - r - 2, c[1] - r - 2))
-            size = 34 if len(label) == 1 else (22 if name == "flap" else 14)
-            img = tc.get(label, size, P.BONE, P.CHARCOAL, 2, False)
-            img.set_alpha(220)
+            img = self.images.get((name, lit))
+            if img is None:
+                img = self.images[(name, lit)] = self.button(name, lit, tc)
             dst.blit(img, img.get_rect(center=c))
+
+    @staticmethod
+    def button(name, lit, tc):
+        _, r, label = BUTTONS[name]
+        s = pygame.Surface((r * 2 + 4, r * 2 + 4), pygame.SRCALPHA)
+        o = (r + 2, r + 2)
+        pygame.draw.circle(s, (*(P.WATTLE if lit else P.CHARCOAL), 120 if lit else 80), o, r)
+        pygame.draw.circle(s, (*P.BONE, 200 if lit else 120), o, r, 3)
+        size = 34 if len(label) == 1 else (22 if name == "flap" else 14)
+        text = tc.get(label, size, P.BONE, P.CHARCOAL, 2, False).copy()
+        text.set_alpha(220)
+        s.blit(text, text.get_rect(center=o))
+        return s
 
 
 def draw_rotate_hint(dst, tc):

@@ -563,7 +563,10 @@ async def run():
     clock = pygame.time.Clock()
     running = True
     while running:
-        dt = min(clock.tick(T.FPS) / 1000.0, 1 / 30)
+        # On a slow device, take several smaller steps rather than letting the
+        # game run in slow motion (one step is at most 1/30 s for stable physics).
+        dt = min(clock.tick(T.FPS) / 1000.0, 0.1)
+        steps = max(1, math.ceil(dt * 30 - 1e-6))
         game.fps = clock.get_fps()
         ctl = Controls()
         for ev in pygame.event.get():
@@ -597,7 +600,9 @@ async def run():
         ctl.left = keys[pygame.K_LEFT] or keys[pygame.K_a]
         ctl.right = keys[pygame.K_RIGHT] or keys[pygame.K_d]
         game.touch.steer(ctl)
-        game.update(dt, ctl)
+        game.update(dt / steps, ctl)
+        for _ in range(steps - 1):  # button presses only count once
+            game.update(dt / steps, Controls(left=ctl.left, right=ctl.right))
         game.draw(screen)
         if WEB and game.touch.active and portrait():
             draw_rotate_hint(screen, game.hud.tc)

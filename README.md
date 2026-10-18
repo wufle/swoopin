@@ -1,5 +1,7 @@
 # Swoopin
 
+![Swoopin gameplay: the magpie swoops kids while a mum stands guard with her broom and your mate flies in to help](docs/screenshots/gameplay.gif)
+
 It's spring in an Aussie suburb, you're a magpie, and everyone is after your
 eggs. Flap Flappy Bird-style around your gum tree and swoop the brats,
 posties, crows, butcherbirds, Djiti Djiti (willie wagtails), cats and goannas
@@ -13,6 +15,19 @@ you a cheeky bonus and sends them screaming for mum. Hit too many and an
 
 Survive the full 10-minute swooping season (Aug → Nov) and the chicks fledge.
 Lose every egg and the nest is raided.
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Title screen](docs/screenshots/title.png) | ![A swoop lands on a kid: SNIP! +50](docs/screenshots/swoop.png) |
+| **Title screen.** The gum tree, the nest and the controls. | **Swoop!** Every hit lands a comic-book word. |
+| ![BULLSEYE! for a hit right in the eye](docs/screenshots/bullseye.png) | ![An angry dad takes aim at the magpie with a shotgun](docs/screenshots/dad.png) |
+| **Bullseye.** Eye hits are worth 5×. | **Angry dad.** Hit too many kids and he comes out, taking slow, visible aim. |
+| ![A mum yells SHOO! and swings her broom at the magpie](docs/screenshots/mum.png) | ![The magpie guards from the nest, clawing a cat off the trunk](docs/screenshots/nest.png) |
+| **"SHOO!"** Mums protect their kids with a broom. | **On guard.** Perch in the nest and claw raiders off the trunk. |
+| ![A kid gets pooped on: SPLAT! EEEW!](docs/screenshots/poop.png) | ![End-of-season statistics screen](docs/screenshots/stats.png) |
+| **Poop** (Ctrl). "EEEW!" | **Season stats.** Accuracy, combos, eggs, and a knockout tally. |
 
 ## Download
 

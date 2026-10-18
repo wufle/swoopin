@@ -94,7 +94,7 @@ class Mate:
             self.state = "leave"
             self.target = None
             hx, hy = self.pos
-            g.fx.text("HOORAY, LOVE!", (hx, hy - 30), "plain", 18, drift=-40)
+            g.fx.text("HOOROO, LOVE!", (hx, hy - 30), "plain", 18, drift=-40)
 
         if self.state == "leave":
             # off up into the gum canopy and away

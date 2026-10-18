@@ -20,14 +20,24 @@ BUTTONS = {
     "left": ((72, 462), 50, "<"),
     "right": ((192, 462), 50, ">"),
     "mate": ((300, 492), 30, "MATE"),
-    "flap": ((878, 450), 64, "FLAP"),
-    "swoop": ((752, 484), 44, "SWOOP"),
-    "claw": ((770, 368), 40, "CLAW"),
-    "poop": ((884, 318), 32, "POOP"),
-    "pause": ((930, 104), 24, "II"),
+    # right-hand buttons sit against the right edge, whatever the screen width
+    "flap": ((W - 82, 450), 64, "FLAP"),
+    "swoop": ((W - 208, 484), 44, "SWOOP"),
+    "claw": ((W - 190, 368), 40, "CLAW"),
+    "poop": ((W - 76, 318), 32, "POOP"),
+    "pause": ((W - 30, 104), 24, "II"),
 }
 HELD = ("left", "right")
 TITLE_BUTTON = (pygame.Rect(W / 2 - 90, 330, 180, 50), "TITLE")
+
+
+def coarse_pointer():
+    """True in a browser on a phone or tablet (touch is the main input)."""
+    try:
+        import platform
+        return bool(platform.window.matchMedia("(pointer: coarse)").matches)
+    except Exception:
+        return False
 
 
 def portrait():
@@ -42,7 +52,7 @@ def portrait():
 
 class TouchPad:
     def __init__(self):
-        self.active = False  # a finger has been seen
+        self.active = coarse_pointer()  # a touch screen, or a finger has been seen
         self.fingers = {}  # finger id -> button under it (or None)
         self.last_touch = -99.0
         self.flash = {}  # button -> time it was last pressed, for the glow

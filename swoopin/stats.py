@@ -150,8 +150,9 @@ def draw(dst, g, t):
         dst.blit(img, (W / 2 - img.get_width() / 2, 140))
 
     top = 172
-    panel(dst, (40, top, 420, 318))
-    panel(dst, (500, top, 420, 318))
+    ox = (W - 960) // 2  # the panels are laid out for 960 wide; centre them on wider screens
+    panel(dst, (ox + 40, top, 420, 318))
+    panel(dst, (ox + 500, top, 420, 318))
 
     # left: your season
     acc = f"{100 * st.swoop_hits / st.swoops:.0f}%  ({st.swoop_hits}/{st.swoops})" if st.swoops else "-"
@@ -171,24 +172,24 @@ def draw(dst, g, t):
         ("Shot by dads", f"{st.times_shot}"),
         ("Poops dropped / direct hits", f"{st.poops} / {st.poop_hits}"),
     ]
-    header(dst, tc, "YOUR SEASON", 60, top + 10)
+    header(dst, tc, "YOUR SEASON", ox + 60, top + 10)
     y = top + 42
     for i, (label, value) in enumerate(rows):
         if t < 0.5 + i * 0.07:
             break
-        dst.blit(tc.get(label, 15, P.BONE, P.CHARCOAL, 1, False), (60, y))
+        dst.blit(tc.get(label, 15, P.BONE, P.CHARCOAL, 1, False), (ox + 60, y))
         v = tc.get(value, 15, P.WATTLE, P.CHARCOAL, 1, False)
-        dst.blit(v, (440 - v.get_width(), y))
+        dst.blit(v, (ox + 440 - v.get_width(), y))
         y += 20
 
     # right: knockouts
     total = sum(st.kos.values())
-    header(dst, tc, f"KNOCKOUTS  {total}", 520, top + 10)
+    header(dst, tc, f"KNOCKOUTS  {total}", ox + 520, top + 10)
     for i, (key, label) in enumerate(KO_ROWS):
         if t < 0.5 + (len(rows) + i) * 0.07 - 0.6:
             break
         col, row = i % 2, i // 2
-        x = 520 + col * 200
+        x = ox + 520 + col * 200
         y = top + 42 + row * 45
         n = st.kos.get(key, 0)
         ic = icon(key)

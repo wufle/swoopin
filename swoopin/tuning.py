@@ -1,7 +1,7 @@
 """Every gameplay, pacing and difficulty number in one place."""
 
 # Screen / world
-SCREEN_W, SCREEN_H = 960, 540
+SCREEN_W, SCREEN_H = 960, 540  # the browser build widens SCREEN_W to fit wide phones (web/main.py)
 WORLD_W = 1440
 GROUND_Y = 478
 NEST_X, NEST_Y = WORLD_W // 2, 232

@@ -87,7 +87,8 @@ screen. Use ◀ ▶ (left thumb) to steer or walk, and FLAP, SWOOP, CLAW and POO
 your partner and II pauses. Multi-touch works, so you can hold a steer button
 while you flap.
 
-On Android the game goes fullscreen and turns to landscape on your first tap.
+On Android the game goes fullscreen and turns to landscape on your first tap,
+and the view widens to fill the screen of wide phones.
 For a proper app-like launch, open the Chrome menu and choose **Add to Home
 screen** (or **Install app**). The icon then opens Swoopin fullscreen, with
 no browser bars. iPhones don't allow web pages to go fullscreen, but Add to

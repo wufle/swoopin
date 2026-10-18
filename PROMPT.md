@@ -311,3 +311,7 @@ swoopin/
   the first touch (Android Chrome allows it straight after a tap), and ships
   an app manifest so "Add to Home screen" launches it fullscreen, landscape,
   with a magpie icon.
+- **Fills the phone screen.** On phones and tablets the view widens from
+  960x540 to the screen's shape (up to 1280x540), so a 20:9 phone has no
+  bars. The page fits the canvas with CSS at the game's real aspect ratio,
+  replacing pygbag's one-off sizing, which could leave it squashed.

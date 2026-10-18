@@ -35,8 +35,8 @@ ice creams go flying, and every hit gets a comic-book sound effect.
   little, so the player can chain hits Flappy-style.
 - **Claw:** **Shift / X** gives a short-range slash with a brief cooldown. It's
   the move for knocking cats and goannas off the trunk.
-- Hitting the ground or a fence makes the magpie stumble: a short stun and a
-  combo reset. It doesn't die, but threats keep coming while it recovers.
+- Landing on the ground is safe: the magpie lands on its feet and can walk
+  (see Revisions). Landing resets the combo.
 - **Esc / P**: pause.
 
 ## Territory: stay near the nest
@@ -248,9 +248,8 @@ swoopin/
   down in one hit. Posties (2), goannas (3) and dads (3) take more, and only
   these multi-hit types get extra health later in the season. Ice-cream and
   cable-tie helmets still halve head damage.
-- **Walking:** a gentle landing puts the magpie on its feet to walk on two
-  legs. Only diving into the ground or dropping from a great height is a
-  stumble.
+- **Walking:** landing always puts the magpie on its feet, never stunned, even
+  out of a dive. It can then walk on two legs. Landing ends the combo.
 - **Angry dads:** knocking out kids fills a DAD-O-METER (innocents count 1,
   brats 0.3, and it drains slowly). When it's full, a dad in a singlet and
   akubra walks in with a shotgun, takes slow, telegraphed aim, fires a spread
@@ -260,3 +259,9 @@ swoopin/
   overlapping, and combo shouts sit by the combo counter.
 - **Full screen:** F11 / Alt+Enter, `--fullscreen` / `--windowed`, remembered
   in `~/.local/share/swoopin/settings.json`.
+- **Real recordings** replace the synthesised voices: Australian magpie carol
+  and raven calls, a willie wagtail chatter (Wikimedia Commons), plus kids,
+  dads, a shotgun and impacts (Freesound CC0). They're trimmed to their onset
+  so hits feel instant. Credits are in `swoopin/sounds/CREDITS.md`.
+- **Landing never hurts:** the magpie always lands on its feet, even out of a
+  full dive.

@@ -195,20 +195,15 @@ class Magpie:
             self.pos[1] = 16
             self.vel[1] = max(self.vel[1], 0)
 
-        # ground: diving into it or dropping like a stone is a stumble,
-        # anything gentler and the magpie lands on its feet
+        # ground: the magpie always lands on its feet, even out of a dive
         if self.pos[1] >= REST_Y:
             self.pos[1] = REST_Y
             if not self.grounded:
-                if self.state != "stun" and (self.state == "swoop" or self.vel[1] > T.HARD_LANDING):
-                    self.state = "stun"
-                    self.stun_t = T.STUN_TIME
-                    self.vel[0] *= 0.3
-                    events.append("stumble")
-                else:
-                    events.append("landed")
-                    if self.state == "swoop":
-                        self.state = "fly"
+                events.append("landed")
+                if self.state == "swoop":
+                    self.state = "fly"
+                    self.swoop_cd = T.SWOOP_COOLDOWN
+                    self.vel[0] *= 0.3  # skid to a stop
             self.vel[1] = 0
             self.grounded = True
         elif self.vel[1] < 0:

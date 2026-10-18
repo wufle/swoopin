@@ -38,7 +38,6 @@ CLAW_RADIUS = 24
 PECK_COOLDOWN = 0.4
 STUN_TIME = 0.6
 WALK_SPEED = 95.0
-HARD_LANDING = 560.0  # falling faster than this onto the ground is a stumble
 HIT_STUN_TIME = 0.45
 INVULN_TIME = 1.0
 

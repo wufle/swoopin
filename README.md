@@ -59,13 +59,16 @@ aspect ratios.
   aim (a dashed red line that locks just before he fires), and lets fly with a
   shotgun spread. Get out of the line, or swoop him to spoil his aim. He takes
   three hits.
-- Land gently and you can walk around on the footpath and peck at shins. Hit
-  the ground in a dive, or drop from a great height, and you'll stumble.
+- Land on the footpath (it never hurts) and you can walk around on two legs and
+  peck at shins. Landing ends your combo.
 - Flying too far from the nest drains your territory meter and drags you back.
 
 ## Code layout
 
-All the art and sound are generated in code, so there are no asset files.
+All the art is drawn in code. The sounds are real recordings: Australian
+magpies and ravens, a willie wagtail, kids, dads and a shotgun. They come from
+Wikimedia Commons and Freesound under CC0 and CC BY-SA 4.0, with full credits
+in [`swoopin/sounds/CREDITS.md`](swoopin/sounds/CREDITS.md).
 `swoopin/tuning.py` holds every gameplay and difficulty number, and
 `swoopin/palette.py` holds every colour. See `PROMPT.md` for the full design.
 
@@ -80,5 +83,6 @@ swoopin/
   level.py     parallax background, gum tree, nest
   hud.py       score, eggs, territory, season calendar, edge arrows
   art.py       all sprite drawing
-  audio.py     synthesised sound effects
+  audio.py     sound playback (recordings + a few synth blips)
+  sounds/      the recordings, with CREDITS.md
 ```

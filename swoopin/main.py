@@ -147,6 +147,7 @@ class Game:
             self.audio.play("waah", 0.6, min_gap=0.8)
         elif th.kind == "cat":
             self.fx.text("HISSS!", th.head_pos(), "plain", 18, drift=-40)
+            self.audio.play("hiss", 0.8)
 
     def nest_hit(self, th):
         if self.eggs <= 0:
@@ -270,11 +271,6 @@ class Game:
                 self.audio.play("swoop")
             elif ev == "claw":
                 self.audio.play("claw", 0.7)
-            elif ev == "stumble":
-                self.combo = 0
-                self.fx.text("THUD!", (self.magpie.pos[0], self.magpie.pos[1] - 20), "bad", 20)
-                self.fx.burst("feather", self.magpie.pos, 4)
-                self.audio.play("thud")
             elif ev == "landed":
                 self.combo = 0
             elif ev == "pulled":

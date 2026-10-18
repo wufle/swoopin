@@ -116,7 +116,7 @@ def apply_hit(game, th, kind, zone, point):
     elif th.kind == "cat":
         audio.play("meow", 0.7)
     elif th.kind == "dad":
-        audio.play("grumble", 0.8)
+        audio.play("yell", 0.9, min_gap=0.6)
 
     label = None
     if th.is_kid:

@@ -61,6 +61,12 @@ aspect ratios.
   three hits.
 - Land on the footpath (it never hurts) and you can walk around on two legs and
   peck at shins. Landing ends your combo.
+- **Land in the nest to stand guard.** Drop gently onto it and the magpie
+  stands among the eggs. Shuffle along the rim, claw down at cats and goannas
+  topping the trunk, and slash crows that come for the eggs. Raiders right at
+  the nest work half as fast while you're sitting on it. Flap to take off, or
+  walk off the edge. A swoop passes straight through the nest, so dives at
+  raiders still land.
 - Flying too far from the nest drains your territory meter and drags you back.
 
 ## Code layout

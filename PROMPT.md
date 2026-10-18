@@ -265,3 +265,11 @@ swoopin/
   so hits feel instant. Credits are in `swoopin/sounds/CREDITS.md`.
 - **Landing never hurts:** the magpie always lands on its feet, even out of a
   full dive.
+- **Nest perch:** drop gently onto the nest to stand in it. The claw reaches
+  down over the rim, and raiders at the nest work at half speed while the
+  magpie is perched. Swoops pass through without perching. Walk off the rim or
+  flap to leave.
+- **Swooping-bird sign** redrawn like the real Australian sign: yellow diamond
+  with an inset border, the magpie silhouette diving at a person with one arm
+  raised, and a "SWOOPING / BIRDS AHEAD" plate sized to its text. Drawn at 4x
+  and smoothed down.

@@ -38,6 +38,8 @@ CLAW_RADIUS = 24
 PECK_COOLDOWN = 0.4
 STUN_TIME = 0.6
 WALK_SPEED = 95.0
+PERCH_HALF_WIDTH = 24  # how far either side of the nest centre the magpie can stand
+PERCHED_RAID_SLOW = 0.5  # raiders right at the nest work this much slower with the magpie on it
 HIT_STUN_TIME = 0.45
 INVULN_TIME = 1.0
 

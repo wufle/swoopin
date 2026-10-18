@@ -140,25 +140,70 @@ class Level:
         return s
 
     def _sign(self, s, x):
-        pygame.draw.rect(s, P.GREY, (x - 2, GY - 92, 5, 92))
-        c = (x, GY - 112)
-        pts = [(c[0], c[1] - 30), (c[0] + 30, c[1]), (c[0], c[1] + 30), (c[0] - 30, c[1])]
-        art.opoly(s, P.WATTLE, pts, 3)
-        # magpie silhouette swooping a stick figure
-        pygame.draw.polygon(s, P.CHARCOAL, [(c[0] - 14, c[1] - 12), (c[0] + 4, c[1] - 8), (c[0] + 12, c[1] - 2),
-                                            (c[0] + 2, c[1] - 4), (c[0] - 8, c[1] - 4)])
-        pygame.draw.circle(s, P.CHARCOAL, (c[0] - 2, c[1] + 6), 3)
-        pygame.draw.line(s, P.CHARCOAL, (c[0] - 2, c[1] + 8), (c[0] - 2, c[1] + 16), 2)
-        pygame.draw.line(s, P.CHARCOAL, (c[0] - 7, c[1] + 10), (c[0] + 3, c[1] + 10), 2)
-        plate = pygame.Rect(0, 0, 76, 26)
-        plate.midtop = (x, GY - 78)
-        pygame.draw.rect(s, P.WATTLE, plate)
-        pygame.draw.rect(s, P.CHARCOAL, plate, 2)
+        """Australian 'swooping birds' warning sign: yellow diamond with an inset
+        black border, a magpie diving with wings raised at a person shielding
+        their head, and a plate sized to its text. Drawn at 4x and smoothed down."""
+        k = 4
+        lines = ("SWOOPING", "BIRDS AHEAD")
         from .fx import font
-        f = font(9, italic=False)
-        for i, line in enumerate(("SWOOPING BIRD", "AHEAD")):
-            t = f.render(line, True, P.CHARCOAL)
-            s.blit(t, (x - t.get_width() / 2, plate.y + 3 + i * 11))
+        f = font(9 * k, italic=False)
+        text = [f.render(line, True, P.CHARCOAL) for line in lines]
+        R = 30  # diamond half-diagonal
+        plate_w = max(t.get_width() for t in text) // k + 10
+        plate_h = len(lines) * 10 + 6
+        w = max(2 * R + 4, plate_w + 4)
+        post = 64
+        h = 2 * R + 4 + plate_h + post
+        big = pygame.Surface((w * k, h * k), pygame.SRCALPHA)
+        cx, cy = w * k / 2, (R + 2) * k
+
+        def pt(px, py):
+            return cx + px * k, cy + py * k
+
+        # post
+        pygame.draw.rect(big, P.GREY, (cx - 2 * k, cy, 5 * k, h * k - cy))
+        pygame.draw.line(big, P.DARK_GREY, (cx + 2 * k, cy), (cx + 2 * k, h * k), k)
+        # diamond with inset border
+        outer = [pt(0, -R), pt(R, 0), pt(0, R), pt(-R, 0)]
+        pygame.draw.polygon(big, P.CHARCOAL, outer)
+        pygame.draw.polygon(big, P.WATTLE, [pt(0, -R + 2), pt(R - 2, 0), pt(0, R - 2), pt(-R + 2, 0)])
+        pygame.draw.polygon(big, P.CHARCOAL, [pt(0, -R + 4.5), pt(R - 4.5, 0), pt(0, R - 4.5), pt(-R + 4.5, 0)],
+                            int(1.2 * k))
+
+        # magpie: the game's own sprite as a silhouette, wings up, diving down-left
+        sprite, _ = art.draw_magpie(0.0)
+        sil = pygame.mask.from_surface(sprite).to_surface(setcolor=(*P.CHARCOAL, 255), unsetcolor=(0, 0, 0, 0))
+        sil = pygame.transform.flip(sil, True, False)
+        sil = pygame.transform.rotozoom(sil, 22, k * 0.36)
+        bx, by = pt(5, -6)
+        layer = pygame.Surface(big.get_size(), pygame.SRCALPHA)
+        layer.blit(sil, (bx - sil.get_width() / 2, by - sil.get_height() / 2))
+        # keep the symbol inside the inner border
+        clip = pygame.Surface(big.get_size(), pygame.SRCALPHA)
+        pygame.draw.polygon(clip, (255, 255, 255, 255), [pt(0, -R + 6), pt(R - 6, 0), pt(0, R - 6), pt(-R + 6, 0)])
+        layer.blit(clip, (0, 0), special_flags=pygame.BLEND_RGBA_MIN)
+        big.blit(layer, (0, 0))
+
+        # person underneath, one arm flung up
+        lw = int(1.8 * k)
+        pygame.draw.circle(big, P.CHARCOAL, pt(-3, 6), 2.6 * k)
+        pygame.draw.line(big, P.CHARCOAL, pt(-3, 9), pt(-3, 15.5), lw)
+        pygame.draw.line(big, P.CHARCOAL, pt(-3, 15.5), pt(-6, 20.5), lw)
+        pygame.draw.line(big, P.CHARCOAL, pt(-3, 15.5), pt(0, 20.5), lw)
+        pygame.draw.lines(big, P.CHARCOAL, False, [pt(-3, 10), pt(0.5, 7), pt(2, 2.5)], lw)
+        pygame.draw.line(big, P.CHARCOAL, pt(-3, 10), pt(-6.5, 14), lw)
+
+        # text plate, sized to the words
+        py0 = (2 * R + 4) * k
+        plate = pygame.Rect(0, 0, plate_w * k, plate_h * k)
+        plate.midtop = (cx, py0)
+        pygame.draw.rect(big, P.CHARCOAL, plate, border_radius=k * 2)
+        pygame.draw.rect(big, P.WATTLE, plate.inflate(-3 * k, -3 * k), border_radius=k)
+        for i, t in enumerate(text):
+            big.blit(t, (cx - t.get_width() / 2, py0 + (3.5 + i * 10) * k - k))
+
+        small = pygame.transform.smoothscale(big, (w, h))
+        s.blit(small, (x - w / 2, GY - h))
 
     def _trunk(self, s, rnd):
         # tapering ghost-gum trunk from the footpath to the nest fork
@@ -226,6 +271,21 @@ class Level:
         self.ring.set_alpha(int(255 * strength))
         dst.blit(self.ring, (-cam[0], -cam[1]))
 
+    def _nest_bowl(self, dst, x, y):
+        art.oellipse(dst, P.NEST, (x - 30, y - 6, 60, 18), 2)
+        for k in range(7):
+            sx = x - 26 + k * 9
+            pygame.draw.line(dst, P.NEST_SHADE, (sx, y - 2), (sx + 9, y + 8), 2)
+            pygame.draw.line(dst, P.NEST_SHADE, (sx + 8, y - 3), (sx - 2, y + 9), 1)
+
+    def draw_nest_front(self, dst, cam):
+        """Redraw the front of the bowl over a magpie standing in the nest."""
+        x, y = T.NEST_X - cam[0], T.NEST_Y - cam[1]
+        old = dst.get_clip()
+        dst.set_clip(pygame.Rect(x - 32, y - 1, 64, 16).clip(old))
+        self._nest_bowl(dst, x, y)
+        dst.set_clip(old)
+
     def draw_nest(self, dst, cam, eggs, t, threatened=False):
         x, y = NX - cam[0], NY - cam[1]
         # trophy hats hang off the back and sides of the nest
@@ -237,10 +297,6 @@ class Level:
             ex = x - 15 + i * 10
             art.oellipse(dst, P.EGG, (ex - 5, y - 13, 10, 12), 1)
             pygame.draw.circle(dst, P.EGG_SPOT, (ex - 1, y - 9), 1)
-        art.oellipse(dst, P.NEST, (x - 30, y - 6, 60, 18), 2)
-        for k in range(7):
-            sx = x - 26 + k * 9
-            pygame.draw.line(dst, P.NEST_SHADE, (sx, y - 2), (sx + 9, y + 8), 2)
-            pygame.draw.line(dst, P.NEST_SHADE, (sx + 8, y - 3), (sx - 2, y + 9), 1)
+        self._nest_bowl(dst, x, y)
         if threatened and int(t * 6) % 2 == 0:
             pygame.draw.ellipse(dst, P.WARATAH, (x - 36, y - 20, 72, 34), 3)

@@ -133,6 +133,10 @@ class Threat:
         if self.first_seen is None and self.on_screen():
             self.first_seen = self.game.clock
 
+    def guard_factor(self):
+        """Raiders at the nest work slower while the magpie is standing on it."""
+        return T.PERCHED_RAID_SLOW if self.game.magpie.perched else 1.0
+
     def on_screen(self):
         cx = self.game.cam[0]
         return cx - 10 < self.pos[0] < cx + T.SCREEN_W + 10 and -10 < self.pos[1] < T.SCREEN_H
@@ -628,7 +632,7 @@ class Bird(Threat):
             self.pos[1] += (ty - self.pos[1]) * min(1, 6 * dt)
             self.facing = -self.side if abs(dx) < 4 else (1 if dx > 0 else -1)
             if self.stagger <= 0:
-                self.progress += dt / self.attack_time
+                self.progress += dt / self.attack_time * self.guard_factor()
             if dist > 24:
                 self.state = "approach"
             if self.progress >= 1.0:
@@ -873,7 +877,7 @@ class Climber(Threat):
             self.climb_pose()
             self.pos[0] = self.trunk_x()
             if self.scared_t <= 0:
-                self.progress += dt / self.attack_time
+                self.progress += dt / self.attack_time * self.guard_factor()
             if self.progress >= 1.0:
                 self.progress = 0
                 self.succeeded = True

@@ -11,6 +11,7 @@ from . import tuning as T
 
 BEAK_TIP = (36, -4)  # local offset of the beak tip from the sprite anchor
 REST_Y = T.GROUND_Y - 24  # anchor height when standing: feet on the footpath
+PERCH_Y = T.NEST_Y - 26  # anchor height when standing in the nest
 
 
 @dataclass
@@ -47,6 +48,7 @@ class Magpie:
         self.trail = []
         self.walk = 0.0
         self.walking = False
+        self.perched = False
         self.t = 0.0
 
     # -- geometry ---------------------------------------------------------
@@ -64,6 +66,8 @@ class Magpie:
         return self.pos[0] + ox, self.pos[1] + oy
 
     def claw_center(self):
+        if self.perched:  # reach down over the rim of the nest
+            return self.pos[0] + self.facing * (T.CLAW_REACH + 2), self.pos[1] + 14
         if self.grounded:  # on foot: slash at shin height
             return self.pos[0] + self.facing * (T.CLAW_REACH + 4), self.pos[1] - 2
         return self.pos[0] + self.facing * T.CLAW_REACH, self.pos[1] + 8
@@ -183,8 +187,27 @@ class Magpie:
                 self.pulled = False
         self.vel[0] = max(-cap, min(cap, self.vel[0]))
 
+        prev_y = self.pos[1]
         self.pos[0] += self.vel[0] * dt
         self.pos[1] += self.vel[1] * dt
+
+        # the nest: drop gently onto it to stand guard; walk off the rim or flap to leave.
+        # A swoop passes straight through so dives at raiders on the nest still connect.
+        on_nest = abs(self.pos[0] - T.NEST_X) <= T.PERCH_HALF_WIDTH
+        if self.perched:
+            if self.vel[1] < 0 or not on_nest:
+                self.perched = False
+                self.grounded = False
+            else:
+                self.pos[1] = PERCH_Y
+                self.vel[1] = 0
+        elif (on_nest and self.state == "fly" and self.vel[1] >= 0
+              and prev_y <= PERCH_Y + 2 <= self.pos[1] + 2):
+            self.perched = True
+            self.grounded = True
+            self.pos[1] = PERCH_Y
+            self.vel = [0.0, 0.0]
+            events += ["landed", "perched"]
 
         # bounds
         if self.pos[0] < 14:
@@ -206,7 +229,7 @@ class Magpie:
                     self.vel[0] *= 0.3  # skid to a stop
             self.vel[1] = 0
             self.grounded = True
-        elif self.vel[1] < 0:
+        elif self.vel[1] < 0 or (self.grounded and not self.perched and self.pos[1] < REST_Y - 1):
             self.grounded = False
 
         self.flap_phase += dt * (30 if self.flap_anim > 0 else 5)

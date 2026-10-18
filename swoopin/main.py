@@ -96,6 +96,7 @@ class Game:
         self.cam = [T.NEST_X - W / 2, 0.0]
         self.end_t = None
         self.new_best = False
+        self.seen_perch_tip = False
         self.spawner = Spawner(self)
         self.scene = "play"
         self.paused = False
@@ -273,6 +274,9 @@ class Game:
                 self.audio.play("claw", 0.7)
             elif ev == "landed":
                 self.combo = 0
+            elif ev == "perched" and not self.seen_perch_tip:
+                self.seen_perch_tip = True
+                self.banner("ON GUARD! CLAW FROM THE NEST", sub=True)
             elif ev == "pulled":
                 self.banner("BACK TO THE NEST!", sub=True)
 
@@ -343,6 +347,8 @@ class Game:
         for p in self.projectiles:
             p.draw(dst, cam)
         m.draw(dst, cam)
+        if m.perched:
+            self.level.draw_nest_front(dst, cam)
         self.fx.draw_air(dst, cam)
         self.hud.draw(dst, self)
         if self.debug:

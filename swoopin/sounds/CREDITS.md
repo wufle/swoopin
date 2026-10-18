@@ -18,7 +18,9 @@ recordists.
 | `bang2.ogg` | [Punch #2.mp3](https://freesound.org/s/162369/) (Freesound #162369) | lewisisminted | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `mum0.ogg` | [MOMMY.mp3](https://freesound.org/s/184748/) (Freesound #184748) | AlucardsBride | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `scream0.ogg` | [kid screaming.wav](https://freesound.org/s/220815/) (Freesound #220815) | EricSueiro | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
-| `yell.ogg` | [Reproach yell](https://freesound.org/s/221549/) (Freesound #221549) | joseppujol | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `yell0.ogg` | [Short Oww](https://freesound.org/s/743351/) (Freesound #743351) | qubodup | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `yell1.ogg` | [Short Ouch](https://freesound.org/s/743350/) (Freesound #743350) | qubodup | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `yell2.ogg` | [Man getting hit](https://freesound.org/s/163441/) (Freesound #163441) | Under7dude | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `flap0.ogg` | [wings2.wav](https://freesound.org/s/240469/) (Freesound #240469) | Godowan | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `crack.ogg` | [egg crack6.wav](https://freesound.org/s/244741/) (Freesound #244741) | Reitanna | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `oi0.ogg` | [Oi.wav](https://freesound.org/s/245867/) (Freesound #245867) | rhink | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
@@ -33,7 +35,7 @@ recordists.
 | `oi1.ogg` | [Oi.wav](https://freesound.org/s/585037/) (Freesound #585037) | Sami_Kullström | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `swoosh.ogg` | [swoosh-1.mp3](https://freesound.org/s/585257/) (Freesound #585257) | lesaucisson | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `pump.ogg` | [Shotgun Pump.wav](https://freesound.org/s/673320/) (Freesound #673320) | Dentrabert | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
-| `scream1.ogg` | [kid loud scream 2](https://freesound.org/s/862439/) (Freesound #862439) | Vsessa | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `scream1.ogg` | [Kid-screaming and sobbing-girl kid](https://freesound.org/s/839991/) (Freesound #839991) | Bluey1234 | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
 The claw, peck, KO bell, egg chime and hurt squawk are synthesised in
 `swoopin/audio.py` and are part of the game's code.

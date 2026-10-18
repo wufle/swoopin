@@ -298,3 +298,7 @@ swoopin/
   nest first, and leaves innocent kids and mums alone. Her hits score at your
   current combo multiplier but don't add to the combo. Three calls per
   season, shown under the eggs on the HUD.
+- **Browser version.** The same code runs in the browser through pygbag
+  (WebAssembly), hosted on GitHub Pages. The game loop is async so it can
+  yield to the page each frame. In the browser, E also poops (Ctrl+W would
+  close the tab), and F11 / Esc are left to the browser.

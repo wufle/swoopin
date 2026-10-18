@@ -1,5 +1,6 @@
 """Swoopin: entry point, game loop and scene manager."""
 
+import asyncio
 import json
 import math
 import os
@@ -22,6 +23,7 @@ from .spawner import Spawner
 from .threats import Poop, progress_bar
 
 W, H = T.SCREEN_W, T.SCREEN_H
+WEB = sys.platform == "emscripten"  # running in a browser via pygbag
 DATA_DIR = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "swoopin"
 SCORE_FILE = DATA_DIR / "highscore.json"
 SETTINGS_FILE = DATA_DIR / "settings.json"
@@ -437,7 +439,7 @@ class Game:
         sub = tc.get("Defend the nest. Swoop the lot of 'em.", 22, P.BONE, P.CHARCOAL, 2)
         dst.blit(sub, (W / 2 - sub.get_width() / 2, 150))
         controls = ["SPACE / W / UP / CLICK   flap", "S / DOWN   swoop dive", "SHIFT / X   claw / peck",
-                    "A D / LEFT RIGHT   steer  (or walk, when landed)", "CTRL   poop  (while flying)      Q   call your mate (3 a season)",
+                    "A D / LEFT RIGHT   steer  (or walk, when landed)", "CTRL / E   poop  (while flying)      Q   call your mate (3 a season)",
                     "P / ESC   pause      F11   fullscreen"]
         y = 284
         panel = pygame.Surface((540, 25 * len(controls) + 12), pygame.SRCALPHA)
@@ -461,12 +463,12 @@ class Game:
         """Scene-level keys. Returns False to quit."""
         if key == pygame.K_F1:
             self.debug = not self.debug
-        elif key == pygame.K_F11:
+        elif key == pygame.K_F11 and not WEB:  # the browser handles F11 itself
             toggle_fullscreen()
         elif self.scene == "title":
             if key in (pygame.K_SPACE, pygame.K_RETURN):
                 self.new_game()
-            elif key == pygame.K_ESCAPE:
+            elif key == pygame.K_ESCAPE and not WEB:
                 return False
         elif self.scene in ("over", "victory"):
             if key in (pygame.K_SPACE, pygame.K_RETURN, pygame.K_r):
@@ -488,7 +490,7 @@ class Game:
 FLAP_KEYS = (pygame.K_SPACE, pygame.K_UP, pygame.K_w)
 SWOOP_KEYS = (pygame.K_DOWN, pygame.K_s)
 CLAW_KEYS = (pygame.K_LSHIFT, pygame.K_RSHIFT, pygame.K_x)
-POOP_KEYS = (pygame.K_LCTRL, pygame.K_RCTRL)
+POOP_KEYS = (pygame.K_LCTRL, pygame.K_RCTRL, pygame.K_e)  # E: Ctrl+W/D/S are browser shortcuts
 
 
 def toggle_fullscreen():
@@ -503,6 +505,8 @@ def toggle_fullscreen():
 
 
 def open_window():
+    if WEB:  # the page scales the canvas to fit
+        return pygame.display.set_mode((W, H))
     settings = load_settings()
     full = settings.get("fullscreen", False)
     if "--fullscreen" in sys.argv:
@@ -539,7 +543,9 @@ def selftest():
     sys.exit(0 if ok else 1)
 
 
-def main():
+async def run():
+    """The game loop. Async so the same loop runs in a browser (pygbag),
+    where each frame has to hand control back to the page."""
     if "--selftest" in sys.argv:
         selftest()
     pygame.init()
@@ -556,7 +562,8 @@ def main():
             if ev.type == pygame.QUIT:
                 running = False
             elif ev.type == pygame.KEYDOWN and ev.key == pygame.K_RETURN and ev.mod & pygame.KMOD_ALT:
-                toggle_fullscreen()
+                if not WEB:
+                    toggle_fullscreen()
             elif ev.type == pygame.KEYDOWN:
                 in_play = game.scene == "play" and not game.paused
                 if in_play and ev.key in FLAP_KEYS:
@@ -580,8 +587,12 @@ def main():
         game.update(dt, ctl)
         game.draw(screen)
         pygame.display.flip()
+        await asyncio.sleep(0)
     pygame.quit()
 
+
+def main():
+    asyncio.run(run())
 
 if __name__ == "__main__":
     main()

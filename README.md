@@ -16,6 +16,10 @@ you a cheeky bonus and sends them screaming for mum. Hit too many and an
 Survive the full 10-minute swooping season (Aug → Nov) and the chicks fledge.
 Lose every egg and the nest is raided.
 
+**[▶ Play it in your browser](https://wufle.github.io/swoopin/)** (keyboard needed;
+click the page once to start, which lets the browser play sound), or
+[download it](#download) for Windows, macOS or Linux.
+
 ## Screenshots
 
 | | |
@@ -67,7 +71,7 @@ aspect ratios.
 | Space / W / Up / left-click | Flap (gravity always pulls you down) |
 | S / Down / right-click | Swoop dive in the facing direction. A hit bounces you back up to chain combos |
 | Shift / X | Claw: short-range slash. Does double damage to climbers on the trunk |
-| Ctrl | Poop (while flying) |
+| Ctrl / E | Poop (while flying). In the browser use E, since Ctrl+W closes the tab |
 | Q | Call your mate: a partner magpie flies in and swoops raiders for 10 seconds. Three calls a season |
 | A D / Left Right | Steer and turn in the air, or walk on two legs once you've landed |
 | P / Esc | Pause (Q while paused quits to the title screen instead) |
@@ -162,5 +166,15 @@ pyinstaller packaging/swoopin.spec   # -> dist/
 ./dist/swoopin --selftest            # headless check: plays 20 s, reports sounds loaded
 ```
 
+The browser version is built with [pygbag](https://github.com/pygame-web/pygbag)
+(Python and pygame-ce compiled to WebAssembly):
+
+```sh
+pip install pygbag numpy
+./web/build.sh                               # -> build/web/
+python -m http.server -d build/web 8080     # open http://127.0.0.1:8080
+```
+
+Every push to master redeploys it to GitHub Pages (`.github/workflows/web.yml`).
 Publishing a GitHub release builds and attaches Windows, macOS and Linux
 versions automatically (`.github/workflows/build-executables.yml`).

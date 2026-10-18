@@ -81,6 +81,22 @@ class HUD:
                 pygame.draw.circle(dst, P.EGG_SPOT, (ex + 3, 25), 1)
             else:
                 pygame.draw.ellipse(dst, P.CHARCOAL, rect, 2)
+        # partner magpie: calls left, and how long she'll stay
+        lab = tc.get("Q  MATE", 12, P.BONE, P.CHARCOAL, 2, False)
+        lx = cx - (lab.get_width() + 6 + T.MATE_CALLS * 14) / 2
+        dst.blit(lab, (lx, 38))
+        for i in range(T.MATE_CALLS):
+            c = (round(lx + lab.get_width() + 12 + i * 14), 46)
+            if i < g.mate_calls:
+                art.ocircle(dst, P.BONE, c, 5, 2)
+                pygame.draw.circle(dst, P.CHARCOAL, (c[0] + 1, c[1] - 1), 2)
+            else:
+                pygame.draw.circle(dst, P.CHARCOAL, c, 5, 2)
+        if g.mate is not None and g.mate.state != "leave":
+            w = 80
+            k = max(0.0, g.mate.time_left / T.MATE_TIME)
+            pygame.draw.rect(dst, P.CHARCOAL, (cx - w / 2 - 2, 58, w + 4, 8))
+            pygame.draw.rect(dst, P.WATTLE, (cx - w / 2, 60, w * k, 4))
         # season calendar
         sx, sy, sw = W - 250, 12, 230
         pygame.draw.rect(dst, P.CHARCOAL, (sx - 2, sy - 2, sw + 4, 22), border_radius=4)

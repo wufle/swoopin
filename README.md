@@ -41,8 +41,9 @@ aspect ratios.
 | S / Down / right-click | Swoop dive in the facing direction. A hit bounces you back up to chain combos |
 | Shift / X | Claw: short-range slash. Does double damage to climbers on the trunk |
 | Ctrl | Poop (while flying) |
+| Q | Call your mate: a partner magpie flies in and swoops raiders for 10 seconds. Three calls a season |
 | A D / Left Right | Steer and turn in the air, or walk on two legs once you've landed |
-| P / Esc | Pause (Q while paused quits to the title screen) |
+| P / Esc | Pause (Q while paused quits to the title screen instead) |
 | F1 | Debug overlay (difficulty, spawn stats) |
 | F11 / Alt+Enter | Toggle fullscreen |
 

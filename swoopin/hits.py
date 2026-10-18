@@ -65,7 +65,9 @@ def resolve(game):
                 break
 
 
-def apply_hit(game, th, kind, zone, point):
+def apply_hit(game, th, kind, zone, point, mate=False):
+    """Score and show one hit. Hits by the partner magpie (mate=True) score at
+    the current combo multiplier but don't add to the player's combo."""
     fx, audio = game.fx, game.audio
     if kind == "swoop":
         dmg = T.DMG_SWOOP
@@ -82,7 +84,8 @@ def apply_hit(game, th, kind, zone, point):
     elif zone == "backhead":
         dmg *= T.BACKHEAD_DAMAGE_MULT
 
-    game.combo += 1
+    if not mate:
+        game.combo += 1
     mult = game.combo_mult()
     pts = th.score * T.ZONE_SCORE[zone] * mult
     was_fleeing = th.state in ("flee", "flee_win")
@@ -153,9 +156,9 @@ def apply_hit(game, th, kind, zone, point):
             label = label or "QUICK!"
     game.add_score(pts, (spot[0], spot[1] - 30), label=label)
 
-    game.stats.hit(game, th, kind, zone, ko)
+    game.stats.hit(game, th, "mate" if mate else kind, zone, ko)
 
-    if game.combo >= 5 and game.combo % 5 == 0:
+    if not mate and game.combo >= 5 and game.combo % 5 == 0:
         # shout it up by the combo counter, not over the action
         fx.text(random.choice(WORDS["combo"]), (game.cam[0] + 170, game.cam[1] + 100), "big", 24, life=0.9,
                 drift=0)

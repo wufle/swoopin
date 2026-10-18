@@ -52,11 +52,15 @@ class Stats:
         self.perch_time = 0.0
         self.poops = 0
         self.poop_hits = 0
+        self.mate_calls = 0
+        self.mate_hits = 0
 
     def hit(self, game, th, kind, zone, ko):
         self.hits += 1
         if kind == "swoop":
             self.swoop_hits += 1
+        elif kind == "mate":
+            self.mate_hits += 1
         if zone == "eye":
             self.bullseyes += 1
         self.max_combo = max(self.max_combo, game.combo)
@@ -157,7 +161,7 @@ def draw(dst, g, t):
         ("Best combo", f"{st.max_combo}"),
         ("Swoop accuracy", acc),
         ("Bullseyes", f"{st.bullseyes}"),
-        ("Total hits", f"{st.hits}"),
+        ("Total hits", f"{st.hits}  ({st.mate_hits} by your mate)" if st.mate_calls else f"{st.hits}"),
         ("Eggs lost", f"{st.eggs_lost}"),
         ("Eggs rescued / earned back", f"{st.eggs_saved} / {st.eggs_restored}"),
         ("Perfect waves", f"{st.perfect_waves}"),

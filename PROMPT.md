@@ -292,3 +292,9 @@ swoopin/
   without a KO, so the DAD-O-METER doesn't move. Brats leave the tree, dads
   lose their aim, and animals take a little damage. Misses splat on the
   footpath. Stats count drops and direct hits.
+- **Partner magpie:** **Q** calls your mate, a female magpie (grey across the
+  back), who flies in from the far side for 10 seconds. She swoops whatever
+  is closest to the nest, going for egg thieves and anything already at the
+  nest first, and leaves innocent kids and mums alone. Her hits score at your
+  current combo multiplier but don't add to the combo. Three calls per
+  season, shown under the eggs on the HUD.

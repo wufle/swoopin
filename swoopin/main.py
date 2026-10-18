@@ -17,6 +17,7 @@ from .fx import FX, outlined_text
 from .hud import HUD
 from .level import Level
 from .magpie import Controls, Magpie
+from .mate import Mate
 from .spawner import Spawner
 from .threats import Poop, progress_bar
 
@@ -97,6 +98,8 @@ class Game:
         self.end_t = None
         self.new_best = False
         self.seen_perch_tip = False
+        self.mate = None
+        self.mate_calls = T.MATE_CALLS
         self.stats = stats.Stats()
         self.end_screen_t = 0.0
         self.spawner = Spawner(self)
@@ -249,6 +252,19 @@ class Game:
         self.audio.play("carol", 0.5)
         self.wave_hits = self.wave_kos = self.wave_eggs_lost = 0
 
+    def call_mate(self):
+        """Q: your partner flies in to help for a bit. Only a few per season."""
+        if self.end_t is not None or self.mate is not None:
+            return
+        if self.mate_calls <= 0:
+            self.banner("SHE'S HAD ENOUGH FOR ONE SEASON", sub=True)
+            return
+        self.mate_calls -= 1
+        self.stats.mate_calls += 1
+        self.mate = Mate(self)
+        self.banner("HERE COMES YOUR MATE!", sub=True)
+        self.audio.play("carol", 0.7)
+
     def check_over(self):
         if self.eggs <= 0 and self.carried <= 0 and self.in_transit <= 0 and self.end_t is None:
             self.end_t = 1.6
@@ -308,6 +324,10 @@ class Game:
         for th in self.threats:
             th.update(dt)
         self.threats = [th for th in self.threats if th.alive]
+        if self.mate is not None:
+            self.mate.update(dt)
+            if not self.mate.alive:
+                self.mate = None
         for p in self.projectiles:
             p.update(dt, self)
         self.projectiles = [p for p in self.projectiles if p.alive]
@@ -370,6 +390,8 @@ class Game:
                 progress_bar(dst, th.head_pos(), th.progress, cam)
         for p in self.projectiles:
             p.draw(dst, cam)
+        if self.mate is not None:
+            self.mate.draw(dst, cam)
         m.draw(dst, cam)
         if m.perched:
             self.level.draw_nest_front(dst, cam)
@@ -415,12 +437,12 @@ class Game:
         sub = tc.get("Defend the nest. Swoop the lot of 'em.", 22, P.BONE, P.CHARCOAL, 2)
         dst.blit(sub, (W / 2 - sub.get_width() / 2, 150))
         controls = ["SPACE / W / UP / CLICK   flap", "S / DOWN   swoop dive", "SHIFT / X   claw / peck",
-                    "A D / LEFT RIGHT   steer  (or walk, when landed)", "CTRL   poop  (while flying)",
+                    "A D / LEFT RIGHT   steer  (or walk, when landed)", "CTRL   poop  (while flying)      Q   call your mate (3 a season)",
                     "P / ESC   pause      F11   fullscreen"]
         y = 284
-        panel = pygame.Surface((440, 25 * len(controls) + 12), pygame.SRCALPHA)
+        panel = pygame.Surface((540, 25 * len(controls) + 12), pygame.SRCALPHA)
         panel.fill((*P.CHARCOAL, 150))
-        dst.blit(panel, (W / 2 - 220, y - 7))
+        dst.blit(panel, (W / 2 - 270, y - 7))
         for c in controls:
             img = tc.get(c, 16, P.BONE, P.CHARCOAL, 1, False)
             dst.blit(img, (W / 2 - img.get_width() / 2, y))
@@ -458,6 +480,8 @@ class Game:
             elif key == pygame.K_q and self.paused:
                 self.scene = "title"
                 self.title_t = 0
+            elif key == pygame.K_q:
+                self.call_mate()
         return True
 
 

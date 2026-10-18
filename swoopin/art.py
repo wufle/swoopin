@@ -93,10 +93,11 @@ def star(dst, c, r, col):
 # Magpie
 # --------------------------------------------------------------------------
 
-def draw_magpie(flap, tucked=False, stunned=False, flash=False, standing=False, walk=0.0):
+def draw_magpie(flap, tucked=False, stunned=False, flash=False, standing=False, walk=0.0, female=False):
     s = _surf(76, 56)
     body = P.CHARCOAL
     white = P.BONE if not flash else P.WATTLE
+    nape = P.MAGPIE_GREY_NAPE if female else white
     if standing:  # two legs, alternating stride; feet land 24px below the anchor
         tucked = True
         for hip_x, ph in ((33, 0.0), (40, math.pi)):
@@ -130,7 +131,7 @@ def draw_magpie(flap, tucked=False, stunned=False, flash=False, standing=False, 
         pygame.draw.polygon(s, white, patch)
     # head + white nape
     ocircle(s, body, (54, 21), 10, 2, P.DARK_GREY)
-    pygame.draw.polygon(s, white, [(44, 15), (49, 12), (50, 28), (43, 30)])
+    pygame.draw.polygon(s, nape, [(44, 15), (49, 12), (50, 28), (43, 30)])
     pygame.draw.circle(s, body, (55, 21), 8)
     # eye
     if stunned:

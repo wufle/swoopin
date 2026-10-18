@@ -56,6 +56,16 @@ TERRITORY_SLOW = 0.6
 TERRITORY_HEADWIND = 260.0
 TERRITORY_PULL = 900.0
 
+# Partner magpie: press Q and your mate flies in to help for a while
+MATE_CALLS = 3  # per game
+MATE_TIME = 10.0  # seconds she stays before heading off
+MATE_SPEED = 300.0  # cruising speed while hunting
+MATE_DIVE_SPEED = 520.0
+MATE_DIVE_RANGE = 110  # starts a dive when this close to her target
+MATE_STEER = 4.0  # how quickly she turns toward where she wants to go
+MATE_HIT_COOLDOWN = 0.55
+MATE_ORBIT_RX, MATE_ORBIT_RY = 150, 60  # circles the nest when there's nothing to hit
+
 # Damage
 DMG_SWOOP = 1.0
 DMG_CLAW = 1.0

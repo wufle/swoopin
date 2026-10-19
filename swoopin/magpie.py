@@ -126,7 +126,7 @@ class Magpie:
                 else:
                     self.vel[0] = 0.0
                 if self.walking:
-                    self.walk += dt * 13
+                    self.walk += dt * T.WALK_SPEED / art.MAGPIE_STEP_PX * math.tau
             elif ctl.left and not ctl.right:
                 self.facing = -1
                 self.vel[0] -= T.H_ACCEL * dt
@@ -265,9 +265,10 @@ class Magpie:
         flap = self.flap_phase if not self.grounded else 1.2
         bob = 0.0
         if self.grounded and self.walking:
-            bob = abs(math.sin(self.walk)) * 2
+            bob = abs(math.sin(self.walk)) * 2  # up and down once per step
         surf, anchor = art.draw_magpie(flap, tucked=self.state == "swoop", stunned=self.state == "stun",
-                                       flash=blink, standing=self.grounded, walk=self.walk)
+                                       flash=blink, standing=self.grounded,
+                                       walk=self.walk if self.walking else None)
         art.blit_actor(dst, surf, anchor, (self.pos[0] - cx, self.pos[1] - cy - bob), self.facing, self.angle,
                        140 if blink else 255)
         if self.claw_t > 0:

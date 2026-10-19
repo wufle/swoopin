@@ -93,17 +93,44 @@ def star(dst, c, r, col):
 # Magpie
 # --------------------------------------------------------------------------
 
-def draw_magpie(flap, tucked=False, stunned=False, flash=False, standing=False, walk=0.0, female=False):
+# Walking gait. Each foot spends STANCE of the cycle planted, sliding back
+# under the body exactly as fast as the body moves forward, then lifts and
+# swings forward. The magpie advances the cycle by distance walked
+# (MAGPIE_STEP_PX per cycle), so planted feet stay put on the ground.
+MAGPIE_STRIDE = 14.0  # how far a foot travels, relative to the hip, per step
+MAGPIE_STANCE = 0.6  # share of the cycle a foot is on the ground
+MAGPIE_STEP_PX = MAGPIE_STRIDE / MAGPIE_STANCE  # body travel per full cycle
+
+
+def magpie_feet(walk):
+    """(x offset from the hip, lift) for each foot, facing right. walk is the
+    gait phase in radians, or None when standing still."""
+    if walk is None:
+        return [(-1.0, 0.0), (1.0, 0.0)]
+    feet = []
+    for offset in (0.0, 0.5):  # the legs are half a cycle apart
+        p = (walk / math.tau + offset) % 1.0
+        if p < MAGPIE_STANCE:  # planted: slides back at walking speed
+            u = p / MAGPIE_STANCE
+            feet.append((MAGPIE_STRIDE * (0.5 - u), 0.0))
+        else:  # lifted: swings forward, eased in and out
+            u = (p - MAGPIE_STANCE) / (1 - MAGPIE_STANCE)
+            ease = u * u * (3 - 2 * u)
+            feet.append((MAGPIE_STRIDE * (ease - 0.5), math.sin(u * math.pi) * 4))
+    return feet
+
+
+def draw_magpie(flap, tucked=False, stunned=False, flash=False, standing=False, walk=None, female=False):
     s = _surf(76, 56)
     body = P.CHARCOAL
     white = P.BONE if not flash else P.WATTLE
     nape = P.MAGPIE_GREY_NAPE if female else white
-    if standing:  # two legs, alternating stride; feet land 24px below the anchor
+    if standing:  # two legs; feet land 24px below the anchor
         tucked = True
-        for hip_x, ph in ((33, 0.0), (40, math.pi)):
-            fx = hip_x + math.sin(walk + ph) * 5
-            lift = max(0.0, -math.cos(walk + ph)) * 3
-            knee = (hip_x + (fx - hip_x) * 0.5 + 2, 43 - lift)
+        for hip_x, (dx, lift) in zip((33, 40), magpie_feet(walk)):
+            fx = hip_x + dx
+            # the joint halfway down a bird's leg is its ankle, which bends backward
+            knee = (hip_x + dx * 0.5 - 3, 43 - lift * 0.6)
             pygame.draw.line(s, P.DARK_GREY, (hip_x, 36), knee, 3)
             pygame.draw.line(s, P.DARK_GREY, knee, (fx, 50 - lift), 3)
             pygame.draw.line(s, P.DARK_GREY, (fx - 3, 50 - lift), (fx + 5, 50 - lift), 2)

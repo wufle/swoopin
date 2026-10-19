@@ -493,33 +493,33 @@ class Game:
         """The difficulty slider on the title screen."""
         tc = self.hud.tc
         n = len(T.DIFFICULTIES)
-        panel = pygame.Surface((420, 76), pygame.SRCALPHA)
+        panel = pygame.Surface((310, 56), pygame.SRCALPHA)
         panel.fill((*P.CHARCOAL, 205))
-        dst.blit(panel, (W / 2 - 210, SLIDER_Y - 50))
-        lab = tc.get("DIFFICULTY", 16, P.BONE, P.CHARCOAL, 2)
-        name = tc.get(T.DIFFICULTIES[self.difficulty][0], 22, P.WATTLE, P.CHARCOAL, 2)
-        x = W / 2 - (lab.get_width() + 12 + name.get_width()) / 2
-        dst.blit(lab, (x, SLIDER_Y - 42))
-        dst.blit(name, (x + lab.get_width() + 12, SLIDER_Y - 46))
+        dst.blit(panel, (W / 2 - 155, SLIDER_Y - 38))
+        lab = tc.get("DIFFICULTY", 12, P.BONE, P.CHARCOAL, 2)
+        name = tc.get(T.DIFFICULTIES[self.difficulty][0], 17, P.WATTLE, P.CHARCOAL, 2)
+        x = W / 2 - (lab.get_width() + 9 + name.get_width()) / 2
+        dst.blit(lab, (x, SLIDER_Y - 32))
+        dst.blit(name, (x + lab.get_width() + 9, SLIDER_Y - 35))
         x0, x1 = SLIDER_X0, SLIDER_X1
-        pygame.draw.line(dst, P.CHARCOAL, (x0, SLIDER_Y), (x1, SLIDER_Y), 8)
-        pygame.draw.line(dst, P.BONE, (x0, SLIDER_Y), (x1, SLIDER_Y), 4)
+        pygame.draw.line(dst, P.CHARCOAL, (x0, SLIDER_Y), (x1, SLIDER_Y), 6)
+        pygame.draw.line(dst, P.BONE, (x0, SLIDER_Y), (x1, SLIDER_Y), 3)
         for i in range(n):
             c = (round(x0 + (x1 - x0) * i / (n - 1)), SLIDER_Y)
-            art.ocircle(dst, P.BONE, c, 5, 2)
+            art.ocircle(dst, P.BONE, c, 4, 2)
         k = self.difficulty / (n - 1)
         knob = (round(x0 + (x1 - x0) * k), SLIDER_Y)
-        art.ocircle(dst, _lerp_col(P.EUCALYPT, P.WARATAH, k), knob, 12, 3)
+        art.ocircle(dst, _lerp_col(P.EUCALYPT, P.WARATAH, k), knob, 9, 2)
         if not self.touch.active:
-            for text, cx in (("<", x0 - 30), (">", x1 + 30)):
-                img = tc.get(text, 22, P.BONE, P.CHARCOAL, 2, False)
+            for text, cx in (("<", x0 - 22), (">", x1 + 22)):
+                img = tc.get(text, 17, P.BONE, P.CHARCOAL, 2, False)
                 dst.blit(img, img.get_rect(center=(cx, SLIDER_Y)))
 
     def slider_level_at(self, pos, strict=True):
         """Difficulty under a click or touch on the slider (None if it missed).
         strict=False ignores height, for a finger already dragging it."""
         x, y = pos
-        if strict and not (SLIDER_X0 - 44 <= x <= SLIDER_X1 + 44 and SLIDER_Y - 50 <= y <= SLIDER_Y + 26):
+        if strict and not (SLIDER_X0 - 40 <= x <= SLIDER_X1 + 40 and SLIDER_Y - 40 <= y <= SLIDER_Y + 24):
             return None
         n = len(T.DIFFICULTIES)
         k = (x - SLIDER_X0) / (SLIDER_X1 - SLIDER_X0)
@@ -570,8 +570,8 @@ class Game:
         return True
 
 
-SLIDER_Y = 238  # the difficulty slider's track, on the title screen
-SLIDER_X0, SLIDER_X1 = W / 2 - 150, W / 2 + 150
+SLIDER_Y = 232  # the difficulty slider's track, on the title screen
+SLIDER_X0, SLIDER_X1 = W / 2 - 110, W / 2 + 110
 
 
 def _lerp_col(a, b, k):

@@ -363,14 +363,16 @@ def draw_dad(walk, ko=False):
     oline(s, P.SKIN, (fx - 8, fy - 80), (fx - 14, fy - 58), 6)
     hc = (fx + 4, fy - 86)
     ocircle(s, P.SKIN, hc, 12)
-    pygame.draw.circle(s, P.WARATAH, (hc[0] + 6, hc[1] + 4), 4)  # red-faced
+    pygame.draw.circle(s, P.WARATAH, (hc[0] + 1, hc[1] + 2), 4)  # red-faced
     ex, ey = hc[0] + 5, hc[1] - 2
     if ko:
         xeye(s, (ex, ey), 3)
     else:
         pygame.draw.circle(s, OUT, (ex, ey), 2)
         pygame.draw.line(s, OUT, (ex - 5, ey - 6), (ex + 4, ey - 3), 3)  # furious brow
-    pygame.draw.line(s, OUT, (hc[0] + 2, hc[1] + 7), (hc[0] + 13, hc[1] + 7), 4)  # mo
+    # bushy walrus mo hiding his mouth, drooping at the ends, kept inside the face
+    mo = [(0, 6), (3, 3.5), (7, 3.5), (10, 5), (10, 7.5), (8, 7), (5, 7.5), (2.5, 9), (0, 8.5)]
+    pygame.draw.polygon(s, OUT, [(hc[0] + x, hc[1] + y) for x, y in mo])
     # akubra
     opoly(s, P.FENCE, [(hc[0] - 18, hc[1] - 8), (hc[0] + 20, hc[1] - 8), (hc[0] + 14, hc[1] - 12),
                        (hc[0] - 12, hc[1] - 12)], 2)
@@ -591,6 +593,13 @@ def draw_prop(kind, spin=0.0):
         pygame.draw.line(s, OUT, (0, 0), (7, 5), 1)
         pygame.draw.line(s, OUT, (14, 0), (7, 5), 1)
         return s, (7, 5)
+    if kind == "parcel":
+        s = _surf(18, 14)
+        pygame.draw.rect(s, P.TAN, (1, 1, 16, 12))
+        pygame.draw.line(s, P.FENCE_SHADE, (9, 1), (9, 12), 2)  # tape
+        pygame.draw.rect(s, P.BONE, (3, 3, 4, 3))  # label
+        pygame.draw.rect(s, OUT, (1, 1, 16, 12), 1)
+        return s, (9, 7)
     if kind == "stick":
         s = _surf(22, 6)
         pygame.draw.line(s, P.FENCE_SHADE, (1, 3), (21, 3), 4)

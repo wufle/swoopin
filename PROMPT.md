@@ -321,3 +321,10 @@ swoopin/
   speed and the time raiders need at the nest (`DIFFICULTIES` in
   tuning.py). The choice is remembered, with a separate best score per
   level. In the browser, settings and scores are kept in localStorage.
+- **End screen needs a deliberate choice.** The stats screen ignores input
+  until it has finished counting up, and then only Enter or the PLAY AGAIN /
+  TITLE buttons act, so a flap (Space, click, tap) as the game ends can't skip it.
+- **Postie on a CT110.** Posties ride faster and pelt the nest with parcels
+  that thump off it. Their bike putters in (a looping Honda engine
+  recording), idles while they're parked at the tree, and they toot the horn
+  when they arrive and when swooped. Goannas walk and climb faster.

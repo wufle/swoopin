@@ -20,6 +20,9 @@ except ImportError:  # pragma: no cover
 RATE = 44100
 SOUND_DIR = Path(__file__).parent / "sounds"
 
+# looping sounds, each on a channel of its own
+LOOPS = ("postiebike", "postieidle")
+
 # game event -> recording name, where they differ
 ALIASES = {
     "swoop": "swoosh",
@@ -29,6 +32,7 @@ ALIASES = {
 VOLUME = {
     "carol": 0.55, "chortle": 0.6, "caw": 0.55, "caaaw": 0.5, "chatter": 0.6, "meow": 0.6, "hiss": 0.6,
     "mum": 0.85, "scream": 0.5, "oi": 0.9, "grumble": 0.7, "yell": 0.7, "shotgun": 0.75, "pump": 0.6,
+    "postiebike": 0.3, "postieidle": 0.25, "horn": 0.55,
     "threat": 1.0, "shoo": 1.0, "fart": 0.9, "splat": 0.8, "eew": 1.0, "bang": 0.8, "thump": 0.85, "swoosh": 0.6, "flap": 0.35, "crack": 0.8, "thud": 0.7,
 }
 
@@ -77,6 +81,7 @@ class Audio:
         self.sounds = {}  # name -> [Sound, ...]
         self.ok = False
         self.last = {}
+        self.loops = {}  # name -> reserved channel, for engine sounds that run continuously
         if not enabled:
             return
         # In a browser the mixer runs on the same thread as the game, so a
@@ -87,6 +92,8 @@ class Audio:
             pygame.mixer.pre_init(rate, -16, 1, buf)
             pygame.mixer.init(rate, -16, 1, buf)
             pygame.mixer.set_num_channels(chans)
+            pygame.mixer.set_reserved(len(LOOPS))
+            self.loops = {name: pygame.mixer.Channel(i) for i, name in enumerate(LOOPS)}
         except Exception:
             return
         self.ok = True
@@ -100,6 +107,20 @@ class Audio:
                 self.sounds.setdefault(name, []).append(pygame.mixer.Sound(path))
             except pygame.error:
                 pass
+
+    def set_loop(self, name, vol):
+        """Keep a looping sound (the postie's motorbike) playing at vol; 0 stops it."""
+        ch = self.loops.get(name)
+        variants = self.sounds.get(name)
+        if ch is None or not variants:
+            return
+        if vol <= 0.01:
+            if ch.get_busy():
+                ch.stop()  # distance already fades it out as the bike leaves
+            return
+        if not ch.get_busy():
+            ch.play(variants[0], loops=-1, fade_ms=150)
+        ch.set_volume(min(1.0, vol * VOLUME.get(name, 1.0)))
 
     def play(self, name, vol=1.0, min_gap=0.0):
         key = ALIASES.get(name, name)

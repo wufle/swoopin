@@ -37,6 +37,9 @@ recordists.
 | `swoosh.ogg` | [swoosh-1.mp3](https://freesound.org/s/585257/) (Freesound #585257) | lesaucisson | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `pump.ogg` | [Shotgun Pump.wav](https://freesound.org/s/673320/) (Freesound #673320) | Dentrabert | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 | `scream1.ogg` | [Kid-screaming and sobbing-girl kid](https://freesound.org/s/839991/) (Freesound #839991) | Bluey1234 | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `postiebike.ogg` (riding loop) | [honda-monkey-sound-9](https://freesound.org/s/773004/) (Freesound #773004) | jonatantevaniemi | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `postieidle.ogg` (idle loop) | [S06-29 Small motorcycle idles; then starts up & rides away](https://freesound.org/s/675222/) (Freesound #675222) | craigsmith | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
+| `horn0.ogg`, `horn1.ogg` | [13FMikovaA_simson klakson.wav](https://freesound.org/s/378351/) (Freesound #378351) | 13FPanska_Mikova_Adela | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
 The claw, peck, KO bell, egg chime and hurt squawk are synthesised in
 `swoopin/audio.py` and are part of the game's code.

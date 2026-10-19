@@ -156,6 +156,7 @@ class Threat:
 class Walker(Threat):
     stop_dist = 46
     can_throw = False
+    toss_every = 0.55  # seconds between things lobbed at the nest while raiding
 
     def __init__(self, game, side, innocent=False):
         super().__init__(game, side)
@@ -243,7 +244,7 @@ class Walker(Threat):
                 self.progress += dt / self.attack_time
             self.nest_toss_t -= dt
             if self.nest_toss_t <= 0:
-                self.nest_toss_t = 0.55
+                self.nest_toss_t = self.toss_every
                 self.throw_anim = 1.0
                 self.toss_at_nest()
             if self.progress >= 1.0:
@@ -392,9 +393,31 @@ class BikeKid(Walker):
 
 
 class Postie(Walker):
+    """Rides a Honda CT110 postie bike: putters in, toots, and pelts the nest
+    with parcels. The engine sound is run by Game.update_loops."""
+
     kind = "postie"
     stop_dist = 70
+    toss_every = 0.8
     ZONES = [("eye", (10, -68), 3.5), ("helmet", (2, -77), 9), ("head", (5, -66), 9), ("body", (0, -40), 20)]
+
+    def __init__(self, game, side, innocent=False):
+        super().__init__(game, side, innocent)
+        self.tooted = False
+
+    @property
+    def riding(self):
+        return self.state in ("approach", "flee", "flee_win", "stroll") or self.scatter_t > 0
+
+    def update(self, dt):
+        super().update(dt)
+        if not self.tooted and self.on_screen() and self.state != "ko":
+            self.tooted = True  # "beep beep, mail's here"
+            self.game.audio.play("horn", 0.8, min_gap=0.8)
+
+    def on_hurt(self, from_pos):
+        super().on_hurt(from_pos)
+        self.game.audio.play("horn", 1.0, min_gap=0.5)  # indignant toot
 
     def ko_angle(self):
         return 70 * self.facing
@@ -407,7 +430,14 @@ class Postie(Walker):
 
     def toss_at_nest(self):
         hx, hy = self.head_pos()
-        self.game.fx.prop("letter", (hx, hy), (0, 0), target=(NX + random.uniform(-12, 12), NY - 4), spin=500)
+        g = self.game
+        tx = NX + random.uniform(-12, 12)
+
+        def thunk():  # bounces off the nest and tumbles down
+            g.audio.play("thump", 0.35, min_gap=0.15)
+            g.fx.prop("parcel", (tx, NY - 6), (random.uniform(-90, 90), -140), life=2.5)
+
+        g.fx.prop("parcel", (hx, hy), (0, 0), target=(tx, NY - 4), spin=360, on_arrive=thunk)
 
     def draw(self, dst, cam):
         ko = self.state == "ko"

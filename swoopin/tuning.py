@@ -91,12 +91,12 @@ COMBO_MAX_MULT = 5
 THREATS = {
     "kid": dict(hp=1, speed=55, score=10, attack_time=3.0),
     "bike": dict(hp=1, speed=120, score=15, attack_time=2.6),
-    "postie": dict(hp=2, speed=140, score=25, attack_time=2.4),
+    "postie": dict(hp=2, speed=190, score=25, attack_time=2.0),
     "crow": dict(hp=1, speed=90, score=20, attack_time=2.2),
     "butcherbird": dict(hp=1, speed=150, score=25, attack_time=1.2),
     "djiti": dict(hp=1, speed=185, score=35, attack_time=1.6),
     "cat": dict(hp=1, speed=70, score=20, attack_time=1.2),
-    "goanna": dict(hp=3, speed=32, score=40, attack_time=1.6),
+    "goanna": dict(hp=3, speed=50, score=40, attack_time=1.3),
     "dad": dict(hp=3, speed=70, score=60, attack_time=99),
     "mum": dict(hp=2, speed=60, score=20, attack_time=99),
 }
@@ -137,7 +137,7 @@ DAD_PELLETS = 5
 DAD_SPREAD = 0.07
 DAD_PELLET_SPEED = 1000
 SHOT_STUN_TIME = 1.1
-CLIMB_SPEED = {"cat": 38, "goanna": 20}
+CLIMB_SPEED = {"cat": 38, "goanna": 32}
 
 # Difficulty levels, picked with the slider on the title screen.
 # (name, curve scale, head start, attacker speed, time attackers need at the nest)

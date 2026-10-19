@@ -199,10 +199,37 @@ def draw(dst, g, t):
         dst.blit(tc.get(label, 13, fill, P.CHARCOAL, 1, False), (x + 46, y + 2))
         dst.blit(tc.get(f"{n}", 20, P.WATTLE if n else P.GREY, P.CHARCOAL, 2), (x + 46, y + 16))
 
-    if t > 1.5:
-        msg = "TAP to play again" if g.touch.active else "SPACE  play again        ESC  title"
-        img = tc.get(msg, 18, P.BONE, P.CHARCOAL, 2)
-        dst.blit(img, (W / 2 - img.get_width() / 2, H - 38))
+    if t > READY:
+        keys = not g.touch.active
+        for name, (rect, label, key) in BUTTONS.items():
+            pygame.draw.rect(dst, P.CHARCOAL, rect, border_radius=8)
+            pygame.draw.rect(dst, P.WATTLE if name == "again" else P.BONE, rect, 2, border_radius=8)
+            img = tc.get(label, 17, P.WATTLE if name == "again" else P.BONE, P.CHARCOAL, 2)
+            if keys:  # show which key does the same
+                hint = tc.get(key, 11, P.BONE, P.CHARCOAL, 1, False)
+                w = img.get_width() + 8 + hint.get_width()
+                dst.blit(img, (rect.centerx - w / 2, rect.centery - img.get_height() / 2))
+                dst.blit(hint, (rect.centerx - w / 2 + img.get_width() + 8, rect.centery - hint.get_height() / 2))
+            else:
+                dst.blit(img, img.get_rect(center=rect.center))
+
+
+def button_at(pos):
+    """Which end-screen button a click or tap landed on, if any."""
+    for name, (rect, _, _) in BUTTONS.items():
+        if rect.inflate(12, 12).collidepoint(pos):
+            return name
+    return None
+
+
+# The end screen only takes input once the stats have finished counting up,
+# and only Enter or these buttons play again: a flap (Space, a click or a
+# tap) that happens as the game ends mustn't skip straight past the stats.
+READY = 2.0
+BUTTONS = {
+    "again": (pygame.Rect(W / 2 - 190, H - 42, 200, 34), "PLAY AGAIN", "ENTER"),
+    "title": (pygame.Rect(W / 2 + 30, H - 42, 160, 34), "TITLE", "ESC"),
+}
 
 
 def panel(dst, rect):

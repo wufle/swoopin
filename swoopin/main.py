@@ -525,6 +525,34 @@ class Game:
         k = (x - SLIDER_X0) / (SLIDER_X1 - SLIDER_X0)
         return max(0, min(n - 1, round(k * (n - 1))))
 
+    def update_loops(self):
+        """Postie motorbikes: putt along while riding, idle while parked at the
+        tree pelting the nest, fading out as they leave the screen."""
+        ride = idle = 0.0
+        if self.scene == "play" and not self.paused:
+            mid = self.cam[0] + W / 2
+            for th in self.threats:
+                if th.kind != "postie" or th.state in ("ko", "gone"):
+                    continue
+                near = max(0.0, min(1.0, 1 - (abs(th.pos[0] - mid) - W / 2) / 400))
+                if th.riding:
+                    ride = max(ride, near)
+                else:
+                    idle = max(idle, near)
+        self.audio.set_loop("postiebike", ride)
+        self.audio.set_loop("postieidle", idle)
+
+    def end_screen_press(self, pos):
+        """A click or tap on the end screen: only its buttons do anything."""
+        if self.end_screen_t < stats.READY:
+            return
+        button = stats.button_at(pos)
+        if button == "again":
+            self.new_game()
+        elif button == "title":
+            self.scene = "title"
+            self.title_t = 0
+
     def set_difficulty(self, level):
         level = max(0, min(len(T.DIFFICULTIES) - 1, level))
         if level == self.difficulty:
@@ -554,7 +582,9 @@ class Game:
             elif key == pygame.K_ESCAPE and not WEB:
                 return False
         elif self.scene in ("over", "victory"):
-            if key in (pygame.K_SPACE, pygame.K_RETURN, pygame.K_r):
+            if self.end_screen_t < stats.READY:
+                pass
+            elif key in (pygame.K_RETURN, pygame.K_KP_ENTER):
                 self.new_game()
             elif key == pygame.K_ESCAPE:
                 self.scene = "title"
@@ -679,6 +709,8 @@ async def run():
             elif ev.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION) and game.touch.from_mouse(
                     ev, pygame.time.get_ticks() / 1000):
                 pass
+            elif ev.type == pygame.MOUSEBUTTONDOWN and game.scene in ("over", "victory") and ev.button == 1:
+                game.end_screen_press(ev.pos)
             elif ev.type == pygame.MOUSEBUTTONDOWN and game.scene == "title" and ev.button == 1:
                 level = game.slider_level_at(ev.pos)
                 if level is not None:
@@ -700,6 +732,7 @@ async def run():
         game.update(dt / steps, ctl)
         for _ in range(steps - 1):  # button presses only count once
             game.update(dt / steps, Controls(left=ctl.left, right=ctl.right))
+        game.update_loops()
         game.draw(screen)
         if WEB and game.touch.active and portrait():
             draw_rotate_hint(screen, game.hud.tc)

@@ -108,8 +108,7 @@ class TouchPad:
                 return True
             return game.handle_key(pygame.K_SPACE)
         if game.scene in ("over", "victory"):
-            if game.end_screen_t > 1.5:  # don't skip the stats by accident
-                return game.handle_key(pygame.K_SPACE)
+            game.end_screen_press(pos)  # only its buttons respond
             return True
         if game.paused:
             if TITLE_BUTTON[0].inflate(20, 20).collidepoint(pos):

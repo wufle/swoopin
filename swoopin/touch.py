@@ -88,6 +88,9 @@ class TouchPad:
         if ev.type == pygame.FINGERUP:
             self.fingers.pop(ev.finger_id, None)
             return True
+        if ev.type == pygame.FINGERMOTION and self.fingers.get(ev.finger_id) == "slider":
+            game.set_difficulty(game.slider_level_at(pos, strict=False))
+            return True
         if ev.type == pygame.FINGERMOTION:
             # slide between the steer buttons without lifting
             if self.fingers.get(ev.finger_id) in HELD:
@@ -96,6 +99,13 @@ class TouchPad:
             return True
         # FINGERDOWN
         if game.scene == "title":
+            if game.title_t < 1.0:  # the tap that unlocked the page's sound
+                return True
+            level = game.slider_level_at(pos)
+            if level is not None:  # tap or slide the difficulty
+                game.set_difficulty(level)
+                self.fingers[ev.finger_id] = "slider"
+                return True
             return game.handle_key(pygame.K_SPACE)
         if game.scene in ("over", "victory"):
             if game.end_screen_t > 1.5:  # don't skip the stats by accident

@@ -30,37 +30,58 @@ SCORE_FILE = DATA_DIR / "highscore.json"
 SETTINGS_FILE = DATA_DIR / "settings.json"
 
 
-def load_settings():
+def read_json(path):
+    """Saved data. In a browser it lives in the page's localStorage, since the
+    game's files there vanish when the page closes."""
     try:
-        return json.loads(SETTINGS_FILE.read_text())
+        if WEB:
+            import platform
+            return json.loads(platform.window.localStorage.getItem("swoopin/" + path.name))
+        return json.loads(path.read_text())
     except Exception:
         return {}
 
 
-def save_settings(settings):
+def write_json(path, data):
     try:
-        DATA_DIR.mkdir(parents=True, exist_ok=True)
-        SETTINGS_FILE.write_text(json.dumps(settings))
-    except OSError:
-        pass
-
-
-def load_high():
-    try:
-        return json.loads(SCORE_FILE.read_text())
+        if WEB:
+            import platform
+            platform.window.localStorage.setItem("swoopin/" + path.name, json.dumps(data))
+            return
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data))
     except Exception:
-        return {"score": 0, "time": 0}
-
-
-def save_high(score, time_survived):
-    best = load_high()
-    if score <= best.get("score", 0):
-        return False
-    try:
-        SCORE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        SCORE_FILE.write_text(json.dumps({"score": score, "time": round(time_survived, 1)}))
-    except OSError:
         pass
+
+
+def load_settings():
+    return read_json(SETTINGS_FILE)
+
+
+def save_settings(settings):
+    write_json(SETTINGS_FILE, settings)
+
+
+def load_scores():
+    """Best score per difficulty. Older saves held a single best, from
+    before there were difficulty levels: that one counts as MEDIUM."""
+    data = read_json(SCORE_FILE)
+    if "score" in data:
+        data = {"MEDIUM": {"score": data["score"], "time": data.get("time", 0)}}
+    return data
+
+
+def load_high(difficulty):
+    return load_scores().get(T.DIFFICULTIES[difficulty][0], {"score": 0, "time": 0})
+
+
+def save_high(difficulty, score, time_survived):
+    scores = load_scores()
+    name = T.DIFFICULTIES[difficulty][0]
+    if score <= scores.get(name, {}).get("score", 0):
+        return False
+    scores[name] = {"score": score, "time": round(time_survived, 1)}
+    write_json(SCORE_FILE, scores)
     return True
 
 
@@ -73,8 +94,12 @@ class Game:
         self.paused = False
         self.debug = False
         self.touch = TouchPad()
+        self.dragging_slider = False
         self.fps = 60.0
-        self.high = load_high()
+        self.difficulty = load_settings().get("difficulty", T.DEFAULT_DIFFICULTY)
+        if not (isinstance(self.difficulty, int) and 0 <= self.difficulty < len(T.DIFFICULTIES)):
+            self.difficulty = T.DEFAULT_DIFFICULTY
+        self.high = load_high(self.difficulty)
         self.title_t = 0.0
         self.new_game()
         self.scene = "title"
@@ -368,8 +393,8 @@ class Game:
         else:
             self.egg_bonus = 0
         self.survived = min(self.clock, T.SEASON_LENGTH)
-        self.new_best = save_high(self.score, self.survived)
-        self.high = load_high()
+        self.new_best = save_high(self.difficulty, self.score, self.survived)
+        self.high = load_high(self.difficulty)
 
     # -- drawing ----------------------------------------------------------
 
@@ -442,6 +467,7 @@ class Game:
         dst.blit(logo, (W / 2 - logo.get_width() / 2, 20))
         sub = tc.get("Defend the nest. Swoop the lot of 'em.", 22, P.BONE, P.CHARCOAL, 2)
         dst.blit(sub, (W / 2 - sub.get_width() / 2, 150))
+        self.draw_slider(dst)
         controls = TOUCH_HELP if self.touch.active else ["SPACE / W / UP / CLICK   flap", "S / DOWN   swoop dive", "SHIFT / X   claw / peck",
                     "A D / LEFT RIGHT   steer  (or walk, when landed)", "CTRL / E   poop  (while flying)      Q   call your mate (3 a season)",
                     "P / ESC   pause      F11   fullscreen"]
@@ -458,8 +484,55 @@ class Game:
             dst.blit(ps, (W / 2 - ps.get_width() / 2, 460))
         best = self.high.get("score", 0)
         if best:
-            img = tc.get(f"BEST {best:,}", 18, P.BONE, P.CHARCOAL, 2)
+            img = tc.get(f"{T.DIFFICULTIES[self.difficulty][0]} BEST {best:,}", 18, P.BONE, P.CHARCOAL, 2)
             dst.blit(img, (W - img.get_width() - 16, H - 34))
+
+    def draw_slider(self, dst):
+        """The difficulty slider on the title screen."""
+        tc = self.hud.tc
+        n = len(T.DIFFICULTIES)
+        panel = pygame.Surface((420, 76), pygame.SRCALPHA)
+        panel.fill((*P.CHARCOAL, 205))
+        dst.blit(panel, (W / 2 - 210, SLIDER_Y - 50))
+        lab = tc.get("DIFFICULTY", 16, P.BONE, P.CHARCOAL, 2)
+        name = tc.get(T.DIFFICULTIES[self.difficulty][0], 22, P.WATTLE, P.CHARCOAL, 2)
+        x = W / 2 - (lab.get_width() + 12 + name.get_width()) / 2
+        dst.blit(lab, (x, SLIDER_Y - 42))
+        dst.blit(name, (x + lab.get_width() + 12, SLIDER_Y - 46))
+        x0, x1 = SLIDER_X0, SLIDER_X1
+        pygame.draw.line(dst, P.CHARCOAL, (x0, SLIDER_Y), (x1, SLIDER_Y), 8)
+        pygame.draw.line(dst, P.BONE, (x0, SLIDER_Y), (x1, SLIDER_Y), 4)
+        for i in range(n):
+            c = (round(x0 + (x1 - x0) * i / (n - 1)), SLIDER_Y)
+            art.ocircle(dst, P.BONE, c, 5, 2)
+        k = self.difficulty / (n - 1)
+        knob = (round(x0 + (x1 - x0) * k), SLIDER_Y)
+        art.ocircle(dst, _lerp_col(P.EUCALYPT, P.WARATAH, k), knob, 12, 3)
+        if not self.touch.active:
+            for text, cx in (("<", x0 - 30), (">", x1 + 30)):
+                img = tc.get(text, 22, P.BONE, P.CHARCOAL, 2, False)
+                dst.blit(img, img.get_rect(center=(cx, SLIDER_Y)))
+
+    def slider_level_at(self, pos, strict=True):
+        """Difficulty under a click or touch on the slider (None if it missed).
+        strict=False ignores height, for a finger already dragging it."""
+        x, y = pos
+        if strict and not (SLIDER_X0 - 44 <= x <= SLIDER_X1 + 44 and SLIDER_Y - 50 <= y <= SLIDER_Y + 26):
+            return None
+        n = len(T.DIFFICULTIES)
+        k = (x - SLIDER_X0) / (SLIDER_X1 - SLIDER_X0)
+        return max(0, min(n - 1, round(k * (n - 1))))
+
+    def set_difficulty(self, level):
+        level = max(0, min(len(T.DIFFICULTIES) - 1, level))
+        if level == self.difficulty:
+            return
+        self.difficulty = level
+        self.high = load_high(level)
+        settings = load_settings()
+        settings["difficulty"] = level
+        save_settings(settings)
+        self.audio.play("peck")
 
     # -- input ------------------------------------------------------------
 
@@ -472,6 +545,10 @@ class Game:
         elif self.scene == "title":
             if key in (pygame.K_SPACE, pygame.K_RETURN):
                 self.new_game()
+            elif key in (pygame.K_LEFT, pygame.K_a):
+                self.set_difficulty(self.difficulty - 1)
+            elif key in (pygame.K_RIGHT, pygame.K_d):
+                self.set_difficulty(self.difficulty + 1)
             elif key == pygame.K_ESCAPE and not WEB:
                 return False
         elif self.scene in ("over", "victory"):
@@ -489,6 +566,14 @@ class Game:
             elif key == pygame.K_q:
                 self.call_mate()
         return True
+
+
+SLIDER_Y = 238  # the difficulty slider's track, on the title screen
+SLIDER_X0, SLIDER_X1 = W / 2 - 150, W / 2 + 150
+
+
+def _lerp_col(a, b, k):
+    return tuple(round(a[i] + (b[i] - a[i]) * k) for i in range(3))
 
 
 TOUCH_HELP = ["FLAP button, or tap anywhere on the right", "SWOOP   dive        CLAW   slash / peck",
@@ -589,8 +674,18 @@ async def run():
                     running = game.handle_key(ev.key) and running
             elif ev.type in (pygame.FINGERDOWN, pygame.FINGERUP, pygame.FINGERMOTION):
                 running = game.touch.handle(ev, game, ctl, pygame.time.get_ticks() / 1000) and running
-            elif ev.type == pygame.MOUSEBUTTONDOWN and game.touch.from_mouse(ev, pygame.time.get_ticks() / 1000):
+            elif ev.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION) and game.touch.from_mouse(
+                    ev, pygame.time.get_ticks() / 1000):
                 pass
+            elif ev.type == pygame.MOUSEBUTTONDOWN and game.scene == "title" and ev.button == 1:
+                level = game.slider_level_at(ev.pos)
+                if level is not None:
+                    game.set_difficulty(level)
+                    game.dragging_slider = True
+            elif ev.type == pygame.MOUSEBUTTONUP:
+                game.dragging_slider = False
+            elif ev.type == pygame.MOUSEMOTION and game.scene == "title" and game.dragging_slider:
+                game.set_difficulty(game.slider_level_at(ev.pos, strict=False))
             elif ev.type == pygame.MOUSEBUTTONDOWN and game.scene == "play" and not game.paused:
                 if ev.button == 1:
                     ctl.flap = True

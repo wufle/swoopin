@@ -94,6 +94,16 @@ screen** (or **Install app**). The icon then opens Swoopin fullscreen, with
 no browser bars. iPhones don't allow web pages to go fullscreen, but Add to
 Home Screen from Safari's share menu gets close.
 
+## Difficulty
+
+Pick a difficulty with the slider on the title screen: **CHILL**, **EASY**,
+**MEDIUM** (the original game), **HARD** or **FERAL**. Use ◀ ▶ or A D, click
+or drag with the mouse, or tap or slide on a phone. Easier levels ramp up more
+gently and never reach the full late-season onslaught, and their attackers
+are slower and need longer at the nest. HARD and FERAL start partway up the
+curve and get there sooner. Your choice is remembered, and each difficulty
+keeps its own best score.
+
 ## Scoring
 
 - Hits to the body score ×1, head ×2, the back of a cable-tie helmet ×3, and

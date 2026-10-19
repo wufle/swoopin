@@ -315,3 +315,9 @@ swoopin/
   960x540 to the screen's shape (up to 1280x540), so a 20:9 phone has no
   bars. The page fits the canvas with CSS at the game's real aspect ratio,
   replacing pygbag's one-off sizing, which could leave it squashed.
+- **Difficulty slider.** The title screen has a five-step slider: CHILL, EASY,
+  MEDIUM (the original tuning), HARD and FERAL. Each step scales the
+  season's difficulty curve and gives it a head start, and scales attacker
+  speed and the time raiders need at the nest (`DIFFICULTIES` in
+  tuning.py). The choice is remembered, with a separate best score per
+  level. In the browser, settings and scores are kept in localStorage.

@@ -44,9 +44,10 @@ class Threat:
         if st["hp"] > 1:
             self.max_hp += (1 if d >= T.HP_PLUS_ONE_AT else 0) + (1 if d >= T.HP_PLUS_TWO_AT else 0)
         self.hp = float(self.max_hp)
-        self.speed = st["speed"] * (1 + T.SPEED_SCALE_MAX * d)
+        _, _, _, speed, attack = T.DIFFICULTIES[game.difficulty]
+        self.speed = st["speed"] * (1 + T.SPEED_SCALE_MAX * d) * speed
         self.score = st["score"]
-        self.attack_time = st["attack_time"] * lerp(T.ATTACK_TIME_SCALE_START, T.ATTACK_TIME_SCALE_END, d)
+        self.attack_time = st["attack_time"] * lerp(T.ATTACK_TIME_SCALE_START, T.ATTACK_TIME_SCALE_END, d) * attack
         self.pos = [0.0, 0.0]
         self.vel = [0.0, 0.0]
         self.facing = -side
@@ -966,7 +967,7 @@ class Climber(Threat):
     def __init__(self, game, side, waits=False):
         super().__init__(game, side)
         self.pos = [NX + side * (T.WORLD_W / 2 + 60), float(GY)]
-        self.climb_speed = T.CLIMB_SPEED[self.kind] * (1 + T.SPEED_SCALE_MAX * game.d)
+        self.climb_speed = T.CLIMB_SPEED[self.kind] * (1 + T.SPEED_SCALE_MAX * game.d) * T.DIFFICULTIES[game.difficulty][3]
         self.wait_t = random.uniform(4, 7) if waits else 0.0
         if waits:
             self.state = "wait"

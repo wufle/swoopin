@@ -135,7 +135,7 @@ def draw(dst, g, t):
     if victory:
         sub = f"The chicks fledged!   {g.eggs} egg{'s' if g.eggs != 1 else ''} saved  +{g.egg_bonus:,}"
     else:
-        sub = f"Survived {mins}:{secs:02d} of 10:00   -   reached wave {g.spawner.wave}"
+        sub = f"Survived {mins}:{secs:02d} of 10:00   -   reached wave {g.spawner.wave}   -   {T.DIFFICULTIES[g.difficulty][0]}"
     img = tc.get(sub, 17, P.BONE, P.CHARCOAL, 2, False)
     dst.blit(img, (W / 2 - img.get_width() / 2, 72))
 

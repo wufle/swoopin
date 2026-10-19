@@ -139,6 +139,20 @@ DAD_PELLET_SPEED = 1000
 SHOT_STUN_TIME = 1.1
 CLIMB_SPEED = {"cat": 38, "goanna": 20}
 
+# Difficulty levels, picked with the slider on the title screen.
+# (name, curve scale, head start, attacker speed, time attackers need at the nest)
+# The season's difficulty d (0 -> 1, below) is multiplied by the scale plus
+# the head start, capped at 1: easier levels never reach the full late-season
+# onslaught, harder ones get there sooner. MEDIUM is the original game.
+DIFFICULTIES = [
+    ("CHILL", 0.5, 0.0, 0.8, 1.6),
+    ("EASY", 0.7, 0.0, 0.88, 1.3),
+    ("MEDIUM", 1.0, 0.0, 1.0, 1.0),
+    ("HARD", 1.25, 0.1, 1.1, 0.85),
+    ("FERAL", 1.6, 0.2, 1.2, 0.7),
+]
+DEFAULT_DIFFICULTY = 2  # MEDIUM
+
 # Difficulty scaling (difficulty d runs 0 -> 1 over the season)
 SPEED_SCALE_MAX = 0.6  # 1.0x -> 1.6x
 ATTACK_TIME_SCALE_START = 1.8  # time needed at the nest: generous early...

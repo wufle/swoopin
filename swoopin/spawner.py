@@ -60,7 +60,8 @@ class Spawner:
 
     @property
     def d(self):
-        return difficulty(self.t)
+        _, scale, head_start, _, _ = T.DIFFICULTIES[self.game.difficulty]
+        return min(1.0, difficulty(self.t) * scale + head_start)
 
     def max_active(self):
         return round(lerp(T.MAX_ACTIVE_START, T.MAX_ACTIVE_END, self.d))

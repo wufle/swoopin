@@ -414,7 +414,9 @@ class Game:
             th.draw(dst, cam)
             if th.state == "ko":
                 hx, hy = th.head_pos()
-                art.stars(dst, (hx - cam[0], hy - cam[1] - (28 if th.climbs else 4)), m.t + id(th) % 7)
+                if th.climbs:  # knocked-out climbers lie on their backs, head on the ground
+                    hy = T.GROUND_Y - 30
+                art.stars(dst, (hx - cam[0], hy - cam[1] - (0 if th.climbs else 4)), m.t + id(th) % 7)
             if th.progress > 0 and th.state == "attack":
                 progress_bar(dst, th.head_pos(), th.progress, cam)
         for p in self.projectiles:

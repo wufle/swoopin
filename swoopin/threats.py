@@ -972,6 +972,9 @@ class Climber(Threat):
         if waits:
             self.state = "wait"
         self.fall_v = 0.0
+        self.fall_vx = 0.0
+        self.spin = 0.0
+        self.bounced = False
 
     @property
     def threatening(self):
@@ -1003,19 +1006,34 @@ class Climber(Threat):
                     self.speed *= 1.3
             return
         if self.state == "falling":
+            # cartoon tumble: spin with legs flailing, bounce once, land on its back
             self.fall_v += T.GRAVITY * dt
             self.pos[1] += self.fall_v * dt
-            self.pos[0] += self.side * 60 * dt
-            self.angle += 600 * dt * self.side
+            self.pos[0] += self.fall_vx * dt
+            self.anim += dt * 30
+            if self.bounced:  # roll over onto its back for the landing
+                to_back = (180 - self.angle + 180) % 360 - 180
+                self.angle += to_back * min(1.0, 9 * dt)
+            else:
+                self.angle = (self.angle + self.spin * dt) % 360
             if self.pos[1] >= GY:
                 self.pos[1] = GY
-                self.state = "ko"
-                self.angle = 180
-                self.facing = -self.side
-                g.audio.play("thud")
-                g.fx.shake.add(T.SHAKE_SMALL)
+                if not self.bounced and self.fall_v > 150:
+                    self.bounced = True
+                    self.fall_v = -min(300.0, self.fall_v * 0.4)
+                    self.fall_vx *= 0.5
+                    g.audio.play("thud")
+                    g.fx.shake.add(T.SHAKE_SMALL)
+                    g.fx.burst("smoke", (self.pos[0], GY - 4), n=6, speed=110, life=0.7)
+                else:
+                    self.state = "ko"
+                    self.angle = 180
+                    g.fx.burst("smoke", (self.pos[0], GY - 4), n=3, speed=70, life=0.5)
             return
         if self.state == "ko":
+            # flat on its back, legs in the air, the odd twitch
+            if (self.t * 0.9) % 1.0 < 0.18:
+                self.anim += dt * 40
             self.ko_t -= dt
             if self.ko_t <= 0:
                 self.state = "flee"
@@ -1081,13 +1099,24 @@ class Climber(Threat):
 
     def knock_out(self):
         super().knock_out()
-        if self.pos[1] < GY - 4:
-            self.state = "falling"
-            self.fall_v = -150
+        # knocked flying, wherever it was: off the trunk, or bowled over on the ground
+        self.state = "falling"
+        self.bounced = False
+        on_trunk = self.pos[1] < GY - 4
+        away = self.side if on_trunk else (1 if self.pos[0] >= self.game.magpie.pos[0] else -1)
+        self.fall_v = -220.0 if on_trunk else -340.0
+        self.fall_vx = away * random.uniform(70, 110)
+        self.spin = away * random.uniform(560, 760)
+        self.facing = -away
 
 
 def _climber_pos(th, cam, lift):
-    y = th.pos[1] - cam[1] - (lift if th.state == "ko" else 0)
+    """Where to draw a climber. Upside down, the sprite hangs below its feet,
+    so lift it by how far it has turned over (none upright, all of it on its
+    back); that keeps a tumbling or knocked-out body on the ground, not in the air."""
+    y = th.pos[1] - cam[1]
+    if th.state in ("ko", "falling"):
+        y -= lift * (1 - math.cos(math.radians(th.angle))) / 2
     return th.pos[0] - cam[0], y
 
 

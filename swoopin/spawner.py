@@ -58,6 +58,13 @@ class Spawner:
         self.mum_cd = 20.0
         self.pick_dirs()
 
+    def jump_to(self, t):
+        """Start partway through the season (playtesting with --start)."""
+        self.t = float(t)
+        self.wave = int(t // (T.WAVE_LENGTH + T.BREATHER)) + 1
+        self.phase = phase_index(self.t)
+        self.pick_dirs()
+
     @property
     def d(self):
         _, scale, head_start, _, _ = T.DIFFICULTIES[self.game.difficulty]
@@ -188,6 +195,12 @@ class Spawner:
 
     def spawn_event(self):
         direction = random.choice(self.dirs)
+        focus = [k for k in self.game.focus if k in self.unlocked()]  # playtesting: --focus
+        if focus and random.random() < 0.75:
+            ways = {POOL[k][2] for k in focus}
+            fits = [d for d in self.dirs if ("ground" if d in ("left", "right") else d) in ways]
+            if fits:
+                direction = random.choice(fits)
         if direction in ("left", "right"):
             want = "ground"
             side = -1 if direction == "left" else 1
@@ -195,11 +208,11 @@ class Spawner:
             want = direction
             side = random.choice((-1, 1))
         kinds = [k for k in self.unlocked() if POOL[k][2] == want]
-        if "goanna" in kinds and self.count_alive("goanna") >= (2 if self.phase >= 4 else 1):
+        if "goanna" in kinds and self.count_alive("goanna") >= (2 if self.phase >= 4 or focus else 1):
             kinds.remove("goanna")
         if not kinds:
             return
-        kind = random.choices(kinds, [POOL[k][1] for k in kinds])[0]
+        kind = random.choices(kinds, [POOL[k][1] * (8 if k in focus else 1) for k in kinds])[0]
         d = self.d
 
         if kind == "crow" and self.phase >= 4 and random.random() < 0.3:

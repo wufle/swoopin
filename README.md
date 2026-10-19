@@ -63,6 +63,11 @@ python -m swoopin               # --mute for no sound
 python -m swoopin --fullscreen  # or --windowed; F11 / Alt+Enter toggles in game
 ```
 
+For playtesting, `--start 6:30` begins partway through the season (posties
+turn up from 6:00 and goannas from 6:40), and `--focus postie,goanna` sends
+those attackers far more often. Playtest games don't count towards high
+scores.
+
 Full screen is remembered between runs. The game renders at 960×540 and
 scales crisply: exactly 2× at 1080p and 4× at 4K, with letterboxing on other
 aspect ratios.

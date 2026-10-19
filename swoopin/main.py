@@ -86,7 +86,7 @@ def save_high(difficulty, score, time_survived):
 
 
 class Game:
-    def __init__(self, audio=True):
+    def __init__(self, audio=True, start=0.0, focus=()):
         self.audio = Audio(audio)
         self.level = Level()
         self.hud = HUD()
@@ -94,6 +94,8 @@ class Game:
         self.paused = False
         self.debug = False
         self.touch = TouchPad()
+        self.start_at = start  # playtesting: begin this many seconds into the season
+        self.focus = set(focus)  # playtesting: attacker kinds to send more often
         self.dragging_slider = False
         self.fps = 60.0
         self.difficulty = load_settings().get("difficulty", T.DEFAULT_DIFFICULTY)
@@ -135,8 +137,14 @@ class Game:
         self.scene = "play"
         self.paused = False
         self.audio.play("carol", 0.8)
-        self.banner("WAVE 1")
-        self.banner("PROTECT THE NEST!", sub=True)
+        if self.start_at:
+            self.spawner.jump_to(self.start_at)
+            m, s = divmod(int(self.start_at), 60)
+            self.banner(f"WAVE {self.spawner.wave}")
+            self.banner(f"PLAYTEST FROM {m}:{s:02d}", sub=True)
+        else:
+            self.banner("WAVE 1")
+            self.banner("PROTECT THE NEST!", sub=True)
 
     @property
     def d(self):
@@ -393,7 +401,8 @@ class Game:
         else:
             self.egg_bonus = 0
         self.survived = min(self.clock, T.SEASON_LENGTH)
-        self.new_best = save_high(self.difficulty, self.score, self.survived)
+        playtest = self.start_at or self.focus
+        self.new_best = not playtest and save_high(self.difficulty, self.score, self.survived)
         self.high = load_high(self.difficulty)
 
     # -- drawing ----------------------------------------------------------
@@ -668,6 +677,21 @@ def selftest():
     sys.exit(0 if ok else 1)
 
 
+def playtest_args():
+    """--start 6:30 (or seconds) begins partway into the season;
+    --focus postie,goanna sends those attackers far more often.
+    Playtest games don't count towards high scores."""
+    args = {}
+    argv = sys.argv
+    if "--start" in argv and argv.index("--start") + 1 < len(argv):
+        text = argv[argv.index("--start") + 1]
+        m, _, s = text.rpartition(":")
+        args["start"] = min(T.SEASON_LENGTH - 30, int(m or 0) * 60 + float(s))
+    if "--focus" in argv and argv.index("--focus") + 1 < len(argv):
+        args["focus"] = argv[argv.index("--focus") + 1].split(",")
+    return args
+
+
 async def run():
     """The game loop. Async so the same loop runs in a browser (pygbag),
     where each frame has to hand control back to the page."""
@@ -676,7 +700,7 @@ async def run():
     pygame.init()
     pygame.display.set_caption("Swoopin")
     screen = open_window()
-    game = Game(audio="--mute" not in sys.argv)
+    game = Game(audio="--mute" not in sys.argv, **playtest_args())
     clock = pygame.time.Clock()
     running = True
     while running:
